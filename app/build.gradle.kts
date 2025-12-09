@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.autopilot"
+    namespace = "com.roubao.autopilot"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.autopilot"
+        applicationId = "com.roubao.autopilot"
         minSdk = 26
         targetSdk = 34
         versionCode = 1
