@@ -145,13 +145,7 @@ fun SettingsScreen(
                 title = "API 服务商",
                 subtitle = ApiProvider.ALL.find { it.baseUrl == settings.baseUrl }?.name ?: "自定义",
                 onClick = { showBaseUrlDialog = true }
-            ) {
-                ProviderSelector(
-                    currentUrl = settings.baseUrl,
-                    onSelect = { onUpdateBaseUrl(it.baseUrl) },
-                    onCustomClick = { showBaseUrlDialog = true }
-                )
-            }
+            )
         }
 
         // 模型设置
@@ -509,48 +503,6 @@ fun SettingsItem(
     }
 }
 
-@Composable
-fun ProviderSelector(
-    currentUrl: String,
-    onSelect: (ApiProvider) -> Unit,
-    onCustomClick: () -> Unit
-) {
-    val colors = BaoziTheme.colors
-    val isCustomUrl = ApiProvider.ALL.none { it.baseUrl == currentUrl }
-
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        ApiProvider.ALL.forEach { provider ->
-            val isSelected = provider.baseUrl == currentUrl
-            Surface(
-                modifier = Modifier.clickable { onSelect(provider) },
-                shape = RoundedCornerShape(8.dp),
-                color = if (isSelected) colors.primary else colors.backgroundInput
-            ) {
-                Text(
-                    text = provider.name.split(" ").first(),
-                    fontSize = 12.sp,
-                    color = if (isSelected) Color.White else colors.textSecondary,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                )
-            }
-        }
-        // 自定义按钮
-        Surface(
-            modifier = Modifier.clickable { onCustomClick() },
-            shape = RoundedCornerShape(8.dp),
-            color = if (isCustomUrl) colors.primary else colors.backgroundInput
-        ) {
-            Text(
-                text = "自定义",
-                fontSize = 12.sp,
-                color = if (isCustomUrl) Color.White else colors.textSecondary,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-            )
-        }
-    }
-}
 
 @Composable
 fun CustomModelItem(
