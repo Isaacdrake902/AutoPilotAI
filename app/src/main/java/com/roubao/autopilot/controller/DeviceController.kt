@@ -182,6 +182,13 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
+     * 双击
+     */
+    fun doubleTap(x: Int, y: Int) {
+        exec("input tap $x $y && input tap $x $y")
+    }
+
+    /**
      * 滑动
      */
     fun swipe(x1: Int, y1: Int, x2: Int, y2: Int, durationMs: Int = 500) {

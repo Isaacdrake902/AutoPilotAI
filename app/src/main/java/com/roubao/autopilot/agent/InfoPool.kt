@@ -48,13 +48,15 @@ data class InfoPool(
  * 动作定义
  */
 data class Action(
-    val type: String,           // click, swipe, type, system_button, open_app, answer
+    val type: String,           // click, double_tap, swipe, type, system_button, open_app, answer, wait, take_over
     val x: Int? = null,
     val y: Int? = null,
     val x2: Int? = null,
     val y2: Int? = null,
     val text: String? = null,
-    val button: String? = null  // Back, Home, Enter
+    val button: String? = null,  // Back, Home, Enter
+    val duration: Int? = null,   // wait 动作的等待时长（秒）
+    val message: String? = null  // take_over 动作的提示消息
 ) {
     companion object {
         fun fromJson(json: String): Action? {
@@ -73,7 +75,9 @@ data class Action(
                     x2 = obj.optJSONArray("coordinate2")?.optInt(0),
                     y2 = obj.optJSONArray("coordinate2")?.optInt(1),
                     text = obj.optString("text", null),
-                    button = obj.optString("button", null)
+                    button = obj.optString("button", null),
+                    duration = if (obj.has("duration")) obj.optInt("duration", 3) else null,
+                    message = obj.optString("message", null)
                 )
             } catch (e: Exception) {
                 null
@@ -99,6 +103,8 @@ data class Action(
         }
         text?.let { obj.put("text", it) }
         button?.let { obj.put("button", it) }
+        duration?.let { obj.put("duration", it) }
+        message?.let { obj.put("message", it) }
 
         return obj.toString()
     }

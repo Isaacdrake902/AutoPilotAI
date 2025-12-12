@@ -32,24 +32,32 @@ class OverlayService : Service() {
     private var windowManager: WindowManager? = null
     private var overlayView: View? = null
     private var textView: TextView? = null
+    private var actionButton: TextView? = null
+    private var divider: View? = null
     private var animator: ValueAnimator? = null
 
     companion object {
         private var instance: OverlayService? = null
         private var stopCallback: (() -> Unit)? = null
+        private var continueCallback: (() -> Unit)? = null
+        private var isTakeOverMode = false
 
         fun show(context: Context, text: String, onStop: (() -> Unit)? = null) {
             stopCallback = onStop
+            isTakeOverMode = false
             instance?.updateText(text) ?: run {
                 val intent = Intent(context, OverlayService::class.java).apply {
                     putExtra("text", text)
                 }
                 ContextCompat.startForegroundService(context, intent)
             }
+            instance?.setNormalMode()
         }
 
         fun hide(context: Context) {
             stopCallback = null
+            continueCallback = null
+            isTakeOverMode = false
             context.stopService(Intent(context, OverlayService::class.java))
         }
 
@@ -62,6 +70,13 @@ class OverlayService : Service() {
             instance?.overlayView?.post {
                 instance?.overlayView?.visibility = if (visible) View.VISIBLE else View.INVISIBLE
             }
+        }
+
+        /** 显示人机协作模式 - 等待用户手动完成操作 */
+        fun showTakeOver(message: String, onContinue: () -> Unit) {
+            continueCallback = onContinue
+            isTakeOverMode = true
+            instance?.setTakeOverMode(message)
         }
     }
 
@@ -154,7 +169,7 @@ class OverlayService : Service() {
         container.addView(textView)
 
         // 分隔线
-        val divider = View(this).apply {
+        divider = View(this).apply {
             setBackgroundColor(Color.WHITE)
             alpha = 0.5f
         }
@@ -163,8 +178,8 @@ class OverlayService : Service() {
         }
         container.addView(divider, dividerParams)
 
-        // 停止按钮
-        val stopButton = TextView(this).apply {
+        // 动作按钮（停止/继续）
+        actionButton = TextView(this).apply {
             text = "⏹ 停止"
             textSize = 13f
             setTextColor(Color.WHITE)
@@ -173,11 +188,20 @@ class OverlayService : Service() {
             setShadowLayer(4f, 0f, 0f, Color.BLACK)
             typeface = Typeface.DEFAULT_BOLD
             setOnClickListener {
-                stopCallback?.invoke()
-                hide(this@OverlayService)
+                if (isTakeOverMode) {
+                    // 人机协作模式：点击继续
+                    continueCallback?.invoke()
+                    continueCallback = null
+                    isTakeOverMode = false
+                    setNormalMode()
+                } else {
+                    // 正常模式：点击停止
+                    stopCallback?.invoke()
+                    hide(this@OverlayService)
+                }
             }
         }
-        container.addView(stopButton)
+        container.addView(actionButton)
 
         // 动画：七彩渐变流动效果
         startRainbowAnimation(gradientDrawable)
@@ -312,6 +336,23 @@ class OverlayService : Service() {
     private fun updateText(text: String) {
         textView?.post {
             textView?.text = text
+        }
+    }
+
+    /** 切换到人机协作模式 */
+    private fun setTakeOverMode(message: String) {
+        overlayView?.post {
+            textView?.text = "🖐 $message"
+            actionButton?.text = "✅ 继续"
+            actionButton?.setTextColor(Color.parseColor("#90EE90")) // 浅绿色
+        }
+    }
+
+    /** 切换到正常模式 */
+    private fun setNormalMode() {
+        overlayView?.post {
+            actionButton?.text = "⏹ 停止"
+            actionButton?.setTextColor(Color.WHITE)
         }
     }
 }

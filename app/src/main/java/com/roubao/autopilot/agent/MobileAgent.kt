@@ -16,8 +16,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
+import kotlin.coroutines.resume
 
 /**
  * Mobile Agent 主循环 - 移植自 MobileAgent-v3
@@ -383,6 +385,11 @@ class MobileAgent(
                 val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
                 controller.tap(x, y)
             }
+            "double_tap" -> {
+                val x = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
+                val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
+                controller.doubleTap(x, y)
+            }
             "long_press" -> {
                 val x = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
                 val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
@@ -419,6 +426,21 @@ class MobileAgent(
                     }
                 }
             }
+            "wait" -> {
+                // 智能等待：模型决定等待时长
+                val duration = (action.duration ?: 3).coerceIn(1, 10)
+                log("等待 ${duration} 秒...")
+                delay(duration * 1000L)
+            }
+            "take_over" -> {
+                // 人机协作：暂停等待用户手动完成操作
+                val message = action.message ?: "请完成操作后点击继续"
+                log("🖐 人机协作: $message")
+                withContext(Dispatchers.Main) {
+                    waitForUserTakeOver(message)
+                }
+                log("✅ 用户已完成，继续执行")
+            }
             else -> {
                 log("未知动作类型: ${action.type}")
             }
@@ -426,14 +448,34 @@ class MobileAgent(
     }
 
     /**
-     * 坐标映射 (0-1000 -> 实际像素)
-     * 某些模型输出 0-1000 的相对坐标
+     * 等待用户完成手动操作（人机协作）
      */
-    private fun mapCoordinate(value: Int, max: Int): Int {
-        return if (value > 1000) {
-            value // 已经是绝对坐标
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    private suspend fun waitForUserTakeOver(message: String) = suspendCancellableCoroutine<Unit> { continuation ->
+        com.roubao.autopilot.ui.OverlayService.showTakeOver(message) {
+            if (continuation.isActive) {
+                continuation.resume(Unit) {}
+            }
+        }
+    }
+
+    /**
+     * 坐标映射 - 支持相对坐标和绝对坐标
+     *
+     * 坐标格式判断:
+     * - 0-999: Qwen-VL 相对坐标 (0-999 映射到屏幕)
+     * - >= 1000: 绝对像素坐标，直接使用
+     *
+     * @param value 模型输出的坐标值
+     * @param screenMax 屏幕实际尺寸
+     */
+    private fun mapCoordinate(value: Int, screenMax: Int): Int {
+        return if (value < 1000) {
+            // 相对坐标 (0-999) -> 绝对像素
+            (value * screenMax / 999)
         } else {
-            (value * max / 1000)
+            // 绝对坐标，限制在屏幕范围内
+            value.coerceAtMost(screenMax)
         }
     }
 

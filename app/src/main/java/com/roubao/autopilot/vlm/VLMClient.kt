@@ -183,17 +183,15 @@ class VLMClient(
     }
 
     /**
-     * Bitmap 转 Base64 URL (压缩优化)
+     * Bitmap 转 Base64 URL (只压缩质量，不压缩分辨率)
+     * 保持原始分辨率以确保坐标准确
      */
     private fun bitmapToBase64Url(bitmap: Bitmap): String {
-        // 大幅压缩图片：降低分辨率 + 使用 JPEG
-        val resized = resizeBitmap(bitmap, maxWidth = 720, maxHeight = 1280)
-
         val outputStream = ByteArrayOutputStream()
-        // 使用 JPEG 格式，质量 60%，大幅减少文件大小
-        resized.compress(Bitmap.CompressFormat.JPEG, 60, outputStream)
+        // 使用 JPEG 格式，质量 70%，保持原始分辨率
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
         val bytes = outputStream.toByteArray()
-        println("[VLMClient] 图片压缩: ${bitmap.width}x${bitmap.height} -> ${resized.width}x${resized.height}, ${bytes.size / 1024}KB")
+        println("[VLMClient] 图片压缩: ${bitmap.width}x${bitmap.height}, ${bytes.size / 1024}KB")
         val base64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
         return "data:image/jpeg;base64,$base64"
     }
