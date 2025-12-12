@@ -534,48 +534,11 @@ fun SettingsScreen(
         }
 
         item {
-            val context = LocalContext.current
-            var clickCount by remember { mutableStateOf(0) }
-            var lastClickTime by remember { mutableStateOf(0L) }
-
             SettingsItem(
                 icon = Icons.Default.Info,
                 title = "版本",
                 subtitle = BuildConfig.VERSION_NAME,
-                onClick = {
-                    val currentTime = System.currentTimeMillis()
-                    // 如果两次点击间隔超过 2 秒，重置计数
-                    if (currentTime - lastClickTime > 2000) {
-                        clickCount = 1
-                    } else {
-                        clickCount++
-                    }
-                    lastClickTime = currentTime
-
-                    when (clickCount) {
-                        3 -> {
-                            // 先发送一个非致命错误验证连接
-                            FirebaseCrashlytics.getInstance().apply {
-                                log("用户点击版本号 3 次 - 发送测试事件")
-                                recordException(Exception("测试非致命错误 - Crashlytics Connection Test"))
-                            }
-                            android.widget.Toast.makeText(context, "已发送测试事件到 Firebase", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        5 -> {
-                            android.widget.Toast.makeText(context, "再点 2 次触发测试崩溃", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        6 -> {
-                            android.widget.Toast.makeText(context, "再点 1 次触发测试崩溃", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        7 -> {
-                            clickCount = 0
-                            // 记录测试日志
-                            FirebaseCrashlytics.getInstance().log("用户触发测试崩溃")
-                            // 触发测试崩溃
-                            throw RuntimeException("测试崩溃 - Crashlytics Test")
-                        }
-                    }
-                }
+                onClick = { }
             )
         }
 
