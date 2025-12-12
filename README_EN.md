@@ -186,9 +186,19 @@ User-facing task layer that maps natural language to specific operations:
 
 ### 🔒 Safety Protection
 
+- API Key encrypted with AES-256-GCM
 - Automatically stops when detecting payment or password pages
 - Full visibility during task execution with overlay progress display
 - Can manually stop tasks anytime
+- Optional cloud crash reporting (can be disabled in settings)
+
+### 🔓 Root Mode Support
+
+When Shizuku runs with Root privileges, Roubao can enable Root mode:
+
+- **Root Mode**: Unlock more system-level operation capabilities
+- **su Commands**: Allow execution of `su -c` commands (use with caution)
+- **Auto Detection**: Automatically detects Shizuku privilege level (ADB/Root), option is grayed out in non-Root environments
 
 ### 🔧 Highly Customizable
 
