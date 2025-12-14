@@ -44,7 +44,10 @@ data class InfoPool(
     var skillContext: String = "",
 
     // 对话记忆（保存完整对话历史，用于 Executor）
-    var executorMemory: ConversationMemory? = null
+    var executorMemory: ConversationMemory? = null,
+
+    // 已安装应用列表（用于 open_app 动作）
+    var installedApps: String = ""
 )
 
 /**

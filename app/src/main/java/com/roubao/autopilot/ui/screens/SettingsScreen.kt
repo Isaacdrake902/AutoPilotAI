@@ -59,6 +59,7 @@ fun SettingsScreen(
     onUpdateCloudCrashReport: (Boolean) -> Unit,
     onUpdateRootModeEnabled: (Boolean) -> Unit,
     onUpdateSuCommandEnabled: (Boolean) -> Unit,
+    onSelectProvider: (ApiProvider) -> Unit,
     shizukuAvailable: Boolean,
     shizukuPrivilegeLevel: String = "ADB", // "ADB", "ROOT", "NONE"
     onFetchModels: ((onSuccess: (List<String>) -> Unit, onError: (String) -> Unit) -> Unit)? = null
@@ -368,7 +369,7 @@ fun SettingsScreen(
             SettingsItem(
                 icon = Icons.Default.Settings,
                 title = "API 服务商",
-                subtitle = ApiProvider.ALL.find { it.baseUrl == settings.baseUrl }?.name ?: "自定义",
+                subtitle = settings.currentProvider.name,
                 onClick = { showBaseUrlDialog = true }
             )
         }
@@ -609,14 +610,18 @@ fun SettingsScreen(
         )
     }
 
-    // 自定义 Base URL 对话框
+    // 服务商选择对话框
     if (showBaseUrlDialog) {
-        BaseUrlDialog(
-            currentUrl = settings.baseUrl,
+        ProviderSelectDialog(
+            currentProviderId = settings.currentProviderId,
+            customBaseUrl = settings.currentConfig.customBaseUrl,
             onDismiss = { showBaseUrlDialog = false },
-            onConfirm = {
-                onUpdateBaseUrl(it)
+            onSelectProvider = { provider ->
+                onSelectProvider(provider)
                 showBaseUrlDialog = false
+            },
+            onUpdateCustomUrl = { url ->
+                onUpdateBaseUrl(url)
             }
         )
     }
@@ -1590,48 +1595,49 @@ fun MaxStepsDialog(
     )
 }
 
+/**
+ * 服务商选择对话框
+ */
 @Composable
-fun BaseUrlDialog(
-    currentUrl: String,
+fun ProviderSelectDialog(
+    currentProviderId: String,
+    customBaseUrl: String,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onSelectProvider: (ApiProvider) -> Unit,
+    onUpdateCustomUrl: (String) -> Unit
 ) {
     val colors = BaoziTheme.colors
-    var url by remember { mutableStateOf(currentUrl) }
+    var selectedProviderId by remember { mutableStateOf(currentProviderId) }
+    var customUrl by remember { mutableStateOf(customBaseUrl) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("API Base URL", color = colors.textPrimary)
+            Text("API 服务商", color = colors.textPrimary)
         },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "选择预设服务商或输入自定义 URL（支持 OpenAI 兼容接口）",
+                    text = "选择 API 服务商（支持 OpenAI 兼容接口）",
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 预设选项
-                Text(
-                    text = "预设服务商",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.textHint,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
+                // 服务商列表
                 ApiProvider.ALL.forEach { provider ->
-                    val isSelected = provider.baseUrl == url
+                    val isSelected = provider.id == selectedProviderId
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clickable { url = provider.baseUrl },
+                            .clickable {
+                                selectedProviderId = provider.id
+                                onSelectProvider(provider)
+                            },
                         shape = RoundedCornerShape(8.dp),
                         color = if (isSelected) colors.primary.copy(alpha = 0.15f) else Color.Transparent
                     ) {
@@ -1662,74 +1668,64 @@ fun BaseUrlDialog(
                                     color = if (isSelected) colors.primary else colors.textPrimary
                                 )
                             }
-                            Text(
-                                text = provider.baseUrl,
-                                fontSize = 11.sp,
-                                color = colors.textHint,
-                                modifier = Modifier.padding(start = 28.dp, top = 2.dp)
-                            )
+                            // 对于非自定义服务商，显示其 URL
+                            if (provider.id != "custom") {
+                                Text(
+                                    text = provider.baseUrl,
+                                    fontSize = 11.sp,
+                                    color = colors.textHint,
+                                    modifier = Modifier.padding(start = 28.dp, top = 2.dp)
+                                )
+                            }
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 自定义 URL 输入
-                Text(
-                    text = "自定义 URL",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.textHint,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(colors.backgroundInput)
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
-                ) {
-                    if (url.isEmpty()) {
+                    // 自定义服务商选中时显示 URL 输入框
+                    if (provider.id == "custom" && isSelected) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 28.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(colors.backgroundInput)
+                                .padding(horizontal = 16.dp, vertical = 14.dp)
+                        ) {
+                            if (customUrl.isEmpty()) {
+                                Text(
+                                    text = "https://api.example.com/v1",
+                                    color = colors.textHint,
+                                    fontSize = 14.sp
+                                )
+                            }
+                            BasicTextField(
+                                value = customUrl,
+                                onValueChange = { newUrl ->
+                                    customUrl = newUrl
+                                    onUpdateCustomUrl(newUrl)
+                                },
+                                textStyle = TextStyle(
+                                    color = colors.textPrimary,
+                                    fontSize = 14.sp
+                                ),
+                                cursorBrush = SolidColor(colors.primary),
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
                         Text(
-                            text = "https://api.openai.com/v1",
+                            text = "输入自定义 API 端点地址",
+                            fontSize = 11.sp,
                             color = colors.textHint,
-                            fontSize = 14.sp
+                            modifier = Modifier.padding(start = 28.dp, top = 4.dp)
                         )
                     }
-                    BasicTextField(
-                        value = url,
-                        onValueChange = { url = it },
-                        textStyle = TextStyle(
-                            color = colors.textPrimary,
-                            fontSize = 14.sp
-                        ),
-                        cursorBrush = SolidColor(colors.primary),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
                 }
-
-                // 常用 URL 提示
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "常用: OpenAI (api.openai.com/v1)、Azure、本地部署等",
-                    fontSize = 11.sp,
-                    color = colors.textHint
-                )
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = { if (url.isNotBlank()) onConfirm(url.trim()) },
-                enabled = url.isNotBlank()
-            ) {
-                Text("确定", color = if (url.isNotBlank()) colors.primary else colors.textHint)
-            }
-        },
-        dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = colors.textSecondary)
+                Text("完成", color = colors.primary)
             }
         }
     )

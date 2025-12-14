@@ -69,7 +69,11 @@ class OverlayService : Service() {
             isTakeOverMode = false
             isConfirmMode = false
             pendingCallbacks.clear()
-            context.stopService(Intent(context, OverlayService::class.java))
+            // 只有当 service 已经启动完成时才停止它
+            // 否则会导致 ForegroundServiceDidNotStartInTimeException
+            if (instance != null) {
+                context.stopService(Intent(context, OverlayService::class.java))
+            }
         }
 
         fun update(text: String) {
@@ -343,15 +347,16 @@ class OverlayService : Service() {
             y = 200
         }
 
-        // 添加拖动功能
+        // 添加拖动功能（只拦截文字区域，不影响按钮点击）
         var initialX = 0
         var initialY = 0
         var initialTouchX = 0f
         var initialTouchY = 0f
         var isDragging = false
-        val dragThreshold = 10f
+        val dragThreshold = 20f  // 增大阈值，避免误触
 
-        container.setOnTouchListener { view, event ->
+        // 只在文字区域启用拖动，按钮区域不拦截
+        textView?.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
                     initialX = params.x
@@ -375,12 +380,7 @@ class OverlayService : Service() {
                     true
                 }
                 MotionEvent.ACTION_UP -> {
-                    if (!isDragging) {
-                        // 如果不是拖动，传递点击事件给子 View
-                        false
-                    } else {
-                        true
-                    }
+                    isDragging
                 }
                 else -> false
             }

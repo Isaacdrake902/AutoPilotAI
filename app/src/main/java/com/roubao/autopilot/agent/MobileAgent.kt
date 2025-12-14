@@ -96,8 +96,15 @@ class MobileAgent(
         val (width, height) = controller.getScreenSize()
         infoPool.screenWidth = width
         infoPool.screenHeight = height
-
         log("屏幕尺寸: ${width}x${height}")
+
+        // 获取已安装应用列表（只取非系统应用，限制数量避免 prompt 过长）
+        val apps = appScanner.getApps()
+            .filter { !it.isSystem }
+            .take(50)
+            .map { it.appName }
+        infoPool.installedApps = apps.joinToString(", ")
+        log("已加载 ${apps.size} 个应用")
 
         // 显示悬浮窗 (带停止按钮)
         OverlayService.show(context, "开始执行...") {
@@ -443,27 +450,30 @@ class MobileAgent(
      * 执行具体动作 (在 IO 线程执行，避免 ANR)
      */
     private suspend fun executeAction(action: Action, infoPool: InfoPool) = withContext(Dispatchers.IO) {
+        // 动态获取屏幕尺寸（处理横竖屏切换）
+        val (screenWidth, screenHeight) = controller.getScreenSize()
+
         when (action.type) {
             "click" -> {
-                val x = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
-                val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
+                val x = mapCoordinate(action.x ?: 0, screenWidth)
+                val y = mapCoordinate(action.y ?: 0, screenHeight)
                 controller.tap(x, y)
             }
             "double_tap" -> {
-                val x = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
-                val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
+                val x = mapCoordinate(action.x ?: 0, screenWidth)
+                val y = mapCoordinate(action.y ?: 0, screenHeight)
                 controller.doubleTap(x, y)
             }
             "long_press" -> {
-                val x = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
-                val y = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
+                val x = mapCoordinate(action.x ?: 0, screenWidth)
+                val y = mapCoordinate(action.y ?: 0, screenHeight)
                 controller.longPress(x, y)
             }
             "swipe" -> {
-                val x1 = mapCoordinate(action.x ?: 0, infoPool.screenWidth)
-                val y1 = mapCoordinate(action.y ?: 0, infoPool.screenHeight)
-                val x2 = mapCoordinate(action.x2 ?: 0, infoPool.screenWidth)
-                val y2 = mapCoordinate(action.y2 ?: 0, infoPool.screenHeight)
+                val x1 = mapCoordinate(action.x ?: 0, screenWidth)
+                val y1 = mapCoordinate(action.y ?: 0, screenHeight)
+                val x2 = mapCoordinate(action.x2 ?: 0, screenWidth)
+                val y2 = mapCoordinate(action.y2 ?: 0, screenHeight)
                 controller.swipe(x1, y1, x2, y2)
             }
             "type" -> {

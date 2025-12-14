@@ -48,25 +48,51 @@ data class ApiProvider(
 }
 
 /**
- * 应用设置
+ * 服务商配置（每个服务商独立保存）
  */
+data class ProviderConfig(
+    val apiKey: String = "",
+    val model: String = "",
+    val cachedModels: List<String> = emptyList(),
+    val customBaseUrl: String = ""  // 仅 custom 服务商使用
+)
+
 /**
  * 默认推荐模型
  */
 const val DEFAULT_MODEL = "qwen3-vl-plus"
 
+/**
+ * 应用设置
+ */
 data class AppSettings(
-    val apiKey: String = "",
-    val baseUrl: String = ApiProvider.ALIYUN.baseUrl,
-    val model: String = DEFAULT_MODEL,
-    val cachedModels: List<String> = emptyList(), // 从 API 获取的模型列表缓存
+    val currentProviderId: String = ApiProvider.ALIYUN.id,  // 当前选中的服务商
+    val providerConfigs: Map<String, ProviderConfig> = emptyMap(),  // 每个服务商的配置
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val hasSeenOnboarding: Boolean = false,
     val maxSteps: Int = 25,
-    val cloudCrashReportEnabled: Boolean = true, // 云端崩溃上报，默认开启
-    val rootModeEnabled: Boolean = false, // Shizuku Root 模式
-    val suCommandEnabled: Boolean = false // 允许 su -c 命令（需要 Root 模式开启）
-)
+    val cloudCrashReportEnabled: Boolean = true,
+    val rootModeEnabled: Boolean = false,
+    val suCommandEnabled: Boolean = false
+) {
+    // 便捷属性：获取当前服务商的配置
+    val currentConfig: ProviderConfig
+        get() = providerConfigs[currentProviderId] ?: ProviderConfig()
+
+    val currentProvider: ApiProvider
+        get() = ApiProvider.ALL.find { it.id == currentProviderId } ?: ApiProvider.ALIYUN
+
+    val apiKey: String get() = currentConfig.apiKey
+    val model: String get() = currentConfig.model.ifEmpty { currentProvider.defaultModel }
+    val cachedModels: List<String> get() = currentConfig.cachedModels
+
+    val baseUrl: String
+        get() = if (currentProviderId == "custom") {
+            currentConfig.customBaseUrl
+        } else {
+            currentProvider.baseUrl
+        }
+}
 
 /**
  * 设置管理器
@@ -127,11 +153,57 @@ class SettingsManager(context: Context) {
         } catch (e: Exception) {
             ThemeMode.DARK
         }
+
+        // 加载当前选中的服务商
+        val currentProviderId = prefs.getString("current_provider_id", ApiProvider.ALIYUN.id) ?: ApiProvider.ALIYUN.id
+
+        // 加载每个服务商的配置
+        val providerConfigs = mutableMapOf<String, ProviderConfig>()
+        for (provider in ApiProvider.ALL) {
+            val config = loadProviderConfig(provider.id)
+            providerConfigs[provider.id] = config
+        }
+
+        // 迁移旧数据（如果有）
+        val oldApiKey = securePrefs.getString("api_key", null)
+        val oldModel = prefs.getString("model", null)
+        val oldBaseUrl = prefs.getString("base_url", null)
+        val oldCachedModels = prefs.getStringSet("cached_models", null)
+
+        if (oldApiKey != null || oldModel != null) {
+            // 找到旧数据对应的服务商
+            val oldProviderId = when (oldBaseUrl) {
+                ApiProvider.ALIYUN.baseUrl -> ApiProvider.ALIYUN.id
+                ApiProvider.OPENAI.baseUrl -> ApiProvider.OPENAI.id
+                ApiProvider.OPENROUTER.baseUrl -> ApiProvider.OPENROUTER.id
+                else -> "custom"
+            }
+
+            // 迁移到新格式
+            val migratedConfig = ProviderConfig(
+                apiKey = oldApiKey ?: "",
+                model = oldModel ?: "",
+                cachedModels = oldCachedModels?.toList() ?: emptyList(),
+                customBaseUrl = if (oldProviderId == "custom") oldBaseUrl ?: "" else ""
+            )
+            providerConfigs[oldProviderId] = migratedConfig
+            saveProviderConfig(oldProviderId, migratedConfig)
+
+            // 清除旧数据
+            securePrefs.edit().remove("api_key").apply()
+            prefs.edit()
+                .remove("model")
+                .remove("base_url")
+                .remove("cached_models")
+                .putString("current_provider_id", oldProviderId)
+                .apply()
+
+            android.util.Log.d("SettingsManager", "Migrated old settings to provider: $oldProviderId")
+        }
+
         return AppSettings(
-            apiKey = securePrefs.getString("api_key", "") ?: "",  // 从加密存储读取
-            baseUrl = prefs.getString("base_url", ApiProvider.ALIYUN.baseUrl) ?: ApiProvider.ALIYUN.baseUrl,
-            model = prefs.getString("model", ApiProvider.ALIYUN.defaultModel) ?: ApiProvider.ALIYUN.defaultModel,
-            cachedModels = prefs.getStringSet("cached_models", emptySet())?.toList() ?: emptyList(),
+            currentProviderId = currentProviderId,
+            providerConfigs = providerConfigs,
             themeMode = themeMode,
             hasSeenOnboarding = prefs.getBoolean("has_seen_onboarding", false),
             maxSteps = prefs.getInt("max_steps", 25),
@@ -141,19 +213,60 @@ class SettingsManager(context: Context) {
         )
     }
 
+    /**
+     * 加载指定服务商的配置
+     */
+    private fun loadProviderConfig(providerId: String): ProviderConfig {
+        val prefix = "provider_${providerId}_"
+        return ProviderConfig(
+            apiKey = securePrefs.getString("${prefix}api_key", "") ?: "",
+            model = prefs.getString("${prefix}model", "") ?: "",
+            cachedModels = prefs.getStringSet("${prefix}cached_models", emptySet())?.toList() ?: emptyList(),
+            customBaseUrl = prefs.getString("${prefix}custom_base_url", "") ?: ""
+        )
+    }
+
+    /**
+     * 保存指定服务商的配置
+     */
+    private fun saveProviderConfig(providerId: String, config: ProviderConfig) {
+        val prefix = "provider_${providerId}_"
+        securePrefs.edit().putString("${prefix}api_key", config.apiKey).apply()
+        prefs.edit()
+            .putString("${prefix}model", config.model)
+            .putStringSet("${prefix}cached_models", config.cachedModels.toSet())
+            .putString("${prefix}custom_base_url", config.customBaseUrl)
+            .apply()
+    }
+
+    /**
+     * 更新当前服务商的配置
+     */
+    private fun updateCurrentConfig(update: (ProviderConfig) -> ProviderConfig) {
+        val currentId = _settings.value.currentProviderId
+        val currentConfig = _settings.value.currentConfig
+        val newConfig = update(currentConfig)
+
+        saveProviderConfig(currentId, newConfig)
+
+        val newConfigs = _settings.value.providerConfigs.toMutableMap()
+        newConfigs[currentId] = newConfig
+        _settings.value = _settings.value.copy(providerConfigs = newConfigs)
+    }
+
     fun updateApiKey(apiKey: String) {
-        securePrefs.edit().putString("api_key", apiKey).apply()  // 存储到加密存储
-        _settings.value = _settings.value.copy(apiKey = apiKey)
+        updateCurrentConfig { it.copy(apiKey = apiKey) }
     }
 
     fun updateBaseUrl(baseUrl: String) {
-        prefs.edit().putString("base_url", baseUrl).apply()
-        _settings.value = _settings.value.copy(baseUrl = baseUrl)
+        // 只有自定义服务商才能修改 URL
+        if (_settings.value.currentProviderId == "custom") {
+            updateCurrentConfig { it.copy(customBaseUrl = baseUrl) }
+        }
     }
 
     fun updateModel(model: String) {
-        prefs.edit().putString("model", model).apply()
-        _settings.value = _settings.value.copy(model = model)
+        updateCurrentConfig { it.copy(model = model) }
     }
 
     /**
@@ -161,44 +274,36 @@ class SettingsManager(context: Context) {
      */
     fun updateCachedModels(models: List<String>) {
         val distinctModels = models.distinct()
-        prefs.edit().putStringSet("cached_models", distinctModels.toSet()).apply()
-        _settings.value = _settings.value.copy(cachedModels = distinctModels)
+        updateCurrentConfig { it.copy(cachedModels = distinctModels) }
     }
 
     /**
      * 清空缓存的模型列表
      */
     fun clearCachedModels() {
-        prefs.edit().remove("cached_models").apply()
-        _settings.value = _settings.value.copy(cachedModels = emptyList())
+        updateCurrentConfig { it.copy(cachedModels = emptyList()) }
     }
 
     /**
-     * 选择预设服务商
+     * 选择服务商（切换时自动加载该服务商的配置）
      */
     fun selectProvider(provider: ApiProvider) {
-        if (provider.id == "custom") {
-            // 自定义不改变 URL，只标记
-            return
-        }
-        updateBaseUrl(provider.baseUrl)
-        updateModel(provider.defaultModel)
-        clearCachedModels() // 切换服务商时清空模型缓存
+        prefs.edit().putString("current_provider_id", provider.id).apply()
+        _settings.value = _settings.value.copy(currentProviderId = provider.id)
     }
 
     /**
      * 获取当前服务商
      */
-    fun getCurrentProvider(): ApiProvider? {
-        val currentUrl = _settings.value.baseUrl
-        return ApiProvider.ALL.find { it.baseUrl == currentUrl && it.id != "custom" }
+    fun getCurrentProvider(): ApiProvider {
+        return _settings.value.currentProvider
     }
 
     /**
      * 判断是否使用自定义 URL
      */
     fun isCustomUrl(): Boolean {
-        return getCurrentProvider() == null
+        return _settings.value.currentProviderId == "custom"
     }
 
     fun updateThemeMode(themeMode: ThemeMode) {

@@ -436,18 +436,39 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 获取屏幕尺寸
+     * 获取屏幕尺寸（考虑屏幕方向）
      */
     fun getScreenSize(): Pair<Int, Int> {
         val output = exec("wm size")
         // 输出格式: Physical size: 1080x2400
         val match = Regex("(\\d+)x(\\d+)").find(output)
-        return if (match != null) {
-            val (width, height) = match.destructured
-            Pair(width.toInt(), height.toInt())
+        val (physicalWidth, physicalHeight) = if (match != null) {
+            val (w, h) = match.destructured
+            Pair(w.toInt(), h.toInt())
         } else {
             Pair(1080, 2400)
         }
+
+        // 检测屏幕方向
+        val orientation = getScreenOrientation()
+        return if (orientation == 1 || orientation == 3) {
+            // 横屏：交换宽高
+            Pair(physicalHeight, physicalWidth)
+        } else {
+            // 竖屏
+            Pair(physicalWidth, physicalHeight)
+        }
+    }
+
+    /**
+     * 获取屏幕方向
+     * @return 0=竖屏, 1=横屏(90°), 2=倒置竖屏, 3=横屏(270°)
+     */
+    private fun getScreenOrientation(): Int {
+        val output = exec("dumpsys window displays | grep mCurrentOrientation")
+        // 输出格式: mCurrentOrientation=0 或 mCurrentOrientation=1
+        val match = Regex("mCurrentOrientation=(\\d)").find(output)
+        return match?.groupValues?.get(1)?.toIntOrNull() ?: 0
     }
 
     /**
