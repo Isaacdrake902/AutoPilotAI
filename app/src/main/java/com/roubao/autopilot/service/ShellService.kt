@@ -6,7 +6,7 @@ import java.io.InputStreamReader
 import kotlin.system.exitProcess
 
 /**
- * Shizuku UserService - 在 shell/root 权限下执行命令
+ * Shizuku UserService - 在 shell/root 权限下执行command
  */
 class ShellService : IShellService.Stub() {
 

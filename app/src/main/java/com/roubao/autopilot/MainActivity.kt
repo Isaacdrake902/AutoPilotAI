@@ -43,10 +43,10 @@ import android.util.Log
 private const val TAG = "MainActivity"
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector, val selectedIcon: ImageVector) {
-    object Home : Screen("home", "肉包", Icons.Outlined.Home, Icons.Filled.Home)
-    object Capabilities : Screen("capabilities", "能力", Icons.Outlined.Star, Icons.Filled.Star)
-    object History : Screen("history", "记录", Icons.Outlined.List, Icons.Filled.List)
-    object Settings : Screen("settings", "设置", Icons.Outlined.Settings, Icons.Filled.Settings)
+    object Home : Screen("home", "Baozi", Icons.Outlined.Home, Icons.Filled.Home)
+    object Capabilities : Screen("capabilities", "Capabilities", Icons.Outlined.Star, Icons.Filled.Star)
+    object History : Screen("history", "History", Icons.Outlined.List, Icons.Filled.List)
+    object Settings : Screen("settings", "Settings", Icons.Outlined.Settings, Icons.Filled.Settings)
 }
 
 class MainActivity : ComponentActivity() {
@@ -58,19 +58,19 @@ class MainActivity : ComponentActivity() {
     private val mobileAgent = mutableStateOf<MobileAgent?>(null)
     private var shizukuAvailable = mutableStateOf(false)
 
-    // 当前执行的协程 Job（用于停止任务）
+    // Current execution Job (for stopping task)
     private var currentExecutionJob: kotlinx.coroutines.Job? = null
 
-    // 执行记录列表
+    // Execution Records list
     private val executionRecords = mutableStateOf<List<ExecutionRecord>>(emptyList())
 
-    // 是否正在执行（点击发送后立即为 true）
+    // Is Executing (true immediately after clicking Send)
     private val isExecuting = mutableStateOf(false)
 
-    // 当前执行的记录 ID（用于停止后跳转）
+    // Current execution record ID (for navigating after stop)
     private val currentRecordId = mutableStateOf<String?>(null)
 
-    // 是否需要跳转到记录详情（悬浮窗停止后触发）
+    // Should navigate to record details (triggered after stop)
     private val shouldNavigateToRecord = mutableStateOf(false)
 
     private val binderReceivedListener = Shizuku.OnBinderReceivedListener {
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "Shizuku permission result: $grantResult")
         if (grantResult == PackageManager.PERMISSION_GRANTED) {
             deviceController.bindService()
-            Toast.makeText(this, "Shizuku 权限已获取", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Shizuku permission granted", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -101,7 +101,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        // 设置边到边显示，深色状态栏和导航栏
+        // Edge-to-edge display with dark status/nav bars
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
@@ -112,20 +112,20 @@ class MainActivity : ComponentActivity() {
         settingsManager = SettingsManager(this)
         executionRepository = ExecutionRepository(this)
 
-        // 加载执行记录
+        // Load Execution Records
         lifecycleScope.launch {
             executionRecords.value = executionRepository.getAllRecords()
         }
 
-        // 添加 Shizuku 监听器
+        // Add Shizuku listeners
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
         Shizuku.addBinderDeadListener(binderDeadListener)
         Shizuku.addRequestPermissionResultListener(permissionResultListener)
 
-        // 检查 Shizuku 状态
+        // Check Shizuku Status
         checkAndUpdateShizukuStatus()
 
-        // 预加载已安装应用
+        // Preload installed apps
         lifecycleScope.launch(Dispatchers.IO) {
             AppScanner(this@MainActivity).getApps()
         }
@@ -134,7 +134,7 @@ class MainActivity : ComponentActivity() {
             val settings by settingsManager.settings.collectAsState()
             BaoziTheme(themeMode = settings.themeMode) {
                 val colors = BaoziTheme.colors
-                // 动态更新系统栏颜色
+                // Dynamically update system bar colors
                 SideEffect {
                     val window = this@MainActivity.window
                     window.statusBarColor = colors.background.toArgb()
@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                // 首次启动显示引导画面
+                // Show onboarding on first start
                 if (!settings.hasSeenOnboarding) {
                     OnboardingScreen(
                         onComplete = {
@@ -178,10 +178,10 @@ class MainActivity : ComponentActivity() {
         val navigateToRecord by remember { shouldNavigateToRecord }
         val recordId by remember { currentRecordId }
 
-        // 监听跳转事件
+        // Listen for navigation events
         LaunchedEffect(navigateToRecord, recordId) {
             if (navigateToRecord && recordId != null) {
-                // 找到对应的记录并跳转
+                // Find corresponding record and navigate
                 val record = records.find { it.id == recordId }
                 if (record != null) {
                     selectedRecord = record
@@ -191,7 +191,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // 首次进入且 Shizuku 未连接时，显示帮助引导（只显示一次）
+        // Show Shizuku Help on first visit if not connected (only once)
         LaunchedEffect(Unit) {
             if (!isShizukuAvailable && settings.hasSeenOnboarding && !hasShownShizukuHelp) {
                 hasShownShizukuHelp = true
@@ -239,12 +239,12 @@ class MainActivity : ComponentActivity() {
                     .fillMaxSize()
                     .padding(padding)
             ) {
-                // 处理系统返回手势
+                // Handle system back gesture
                 BackHandler(enabled = selectedRecord != null) {
                     selectedRecord = null
                 }
 
-                // 详情页优先显示
+                // Show details page with priority
                 if (selectedRecord != null) {
                     HistoryDetailScreen(
                         record = selectedRecord!!,
@@ -261,7 +261,7 @@ class MainActivity : ComponentActivity() {
                     ) { screen ->
                         when (screen) {
                             Screen.Home -> {
-                                // 每次进入首页都检测 Shizuku 状态
+                                // 每次进入首页都检测 Shizuku Status
                                 LaunchedEffect(Unit) {
                                     checkAndUpdateShizukuStatus()
                                 }
@@ -316,7 +316,7 @@ class MainActivity : ComponentActivity() {
                                         result.onSuccess { models ->
                                             onSuccess(models)
                                         }.onFailure { error ->
-                                            onError(error.message ?: "未知错误")
+                                            onError(error.message ?: "未知Error")
                                         }
                                     }
                                 }
@@ -327,7 +327,7 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Shizuku 帮助对话框
+        // Shizuku help dialog
         if (showShizukuHelpDialog) {
             ShizukuHelpDialog(onDismiss = { showShizukuHelpDialog = false })
         }
@@ -389,27 +389,27 @@ class MainActivity : ComponentActivity() {
 
     private fun refreshShizukuStatus() {
         Log.d(TAG, "refreshShizukuStatus called by user")
-        Toast.makeText(this, "正在检查 Shizuku 状态...", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "正在检查 Shizuku Status...", Toast.LENGTH_SHORT).show()
         checkAndUpdateShizukuStatus()
 
         if (shizukuAvailable.value && checkShizukuPermission()) {
-            Toast.makeText(this, "Shizuku 已连接", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Shizuku Connected", Toast.LENGTH_SHORT).show()
         } else if (shizukuAvailable.value) {
-            Toast.makeText(this, "请在弹窗中授权 Shizuku", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "请在弹窗中Authorize Shizuku", Toast.LENGTH_SHORT).show()
         } else {
-            Toast.makeText(this, "请先启动 Shizuku App", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "请先Start Shizuku App", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun requestShizukuPermission() {
         try {
             if (!Shizuku.pingBinder()) {
-                Toast.makeText(this, "请先启动 Shizuku App", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "请先Start Shizuku App", Toast.LENGTH_SHORT).show()
                 return
             }
 
             if (Shizuku.isPreV11()) {
-                Toast.makeText(this, "Shizuku 版本过低", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Shizuku Version过低", Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -422,23 +422,23 @@ class MainActivity : ComponentActivity() {
 
             Shizuku.requestPermission(0)
         } catch (e: Exception) {
-            Toast.makeText(this, "请先启动 Shizuku App", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "请先Start Shizuku App", Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun runAgent(instruction: String, apiKey: String, baseUrl: String, model: String, maxSteps: Int) {
         if (instruction.isBlank()) {
-            Toast.makeText(this, "请输入指令", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter指令", Toast.LENGTH_SHORT).show()
             return
         }
         if (apiKey.isBlank()) {
-            Toast.makeText(this, "请输入 API Key", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please enter API Key", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // 检查悬浮窗权限
+        // 检查Overlay permission
         if (!Settings.canDrawOverlays(this)) {
-            Toast.makeText(this, "请授予悬浮窗权限", Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Please grant overlay permission", Toast.LENGTH_LONG).show()
             val intent = android.content.Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 Uri.parse("package:$packageName")
@@ -447,7 +447,7 @@ class MainActivity : ComponentActivity() {
             return
         }
 
-        // 立即设置执行状态为 true，显示停止按钮
+        // 立即Settings执行Status为 true ShowStop按钮
         isExecuting.value = true
 
         val vlmClient = VLMClient(
@@ -458,13 +458,13 @@ class MainActivity : ComponentActivity() {
 
         mobileAgent.value = MobileAgent(vlmClient, deviceController, this)
 
-        // 设置停止回调，用于取消协程
+        // SettingsStop回调 forCancel协程
         mobileAgent.value?.onStopRequested = {
             currentExecutionJob?.cancel()
             currentExecutionJob = null
         }
 
-        // 创建执行记录
+        // 创建Execution Records
         val record = ExecutionRecord(
             title = generateTitle(instruction),
             instruction = instruction,
@@ -472,21 +472,21 @@ class MainActivity : ComponentActivity() {
             status = ExecutionStatus.RUNNING
         )
 
-        // 保存当前记录 ID，用于停止后跳转
+        // Save当前records ID forStop后跳转
         currentRecordId.value = record.id
 
-        // 取消之前的任务（如果有）
+        // Cancel之前的任务（e.g.果有）
         currentExecutionJob?.cancel()
 
         currentExecutionJob = lifecycleScope.launch {
-            // 保存初始记录
+            // Save初始records
             executionRepository.saveRecord(record)
             executionRecords.value = executionRepository.getAllRecords()
 
             try {
                 val result = mobileAgent.value!!.runInstruction(instruction, maxSteps)
 
-                // 更新记录状态
+                // 更新recordsStatus
                 val agentState = mobileAgent.value?.state?.value
                 val steps = agentState?.executionSteps ?: emptyList()
                 val currentLogs = mobileAgent.value?.logs?.value ?: emptyList()
@@ -503,58 +503,58 @@ class MainActivity : ComponentActivity() {
 
                 Toast.makeText(this@MainActivity, result.message, Toast.LENGTH_LONG).show()
 
-                // 重置执行状态
+                // 重置执行Status
                 isExecuting.value = false
 
-                // 延迟3秒后清空日志，恢复默认状态
+                // 延迟3s后清空Logs 恢复默认Status
                 kotlinx.coroutines.delay(3000)
                 mobileAgent.value?.clearLogs()
             } catch (e: kotlinx.coroutines.CancellationException) {
-                // 用户取消任务 - 使用 NonCancellable 确保清理操作完成
+                // 用户Cancel任务 - 使用 NonCancellable 确保清理操作Done
                 kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
                     val agentState = mobileAgent.value?.state?.value
                     val steps = agentState?.executionSteps ?: emptyList()
                     val currentLogs = mobileAgent.value?.logs?.value ?: emptyList()
 
-                    println("[MainActivity] 取消任务 - steps: ${steps.size}, logs: ${currentLogs.size}")
+                    println("[MainActivity] Cancel任务 - steps: ${steps.size}, logs: ${currentLogs.size}")
 
                     val updatedRecord = record.copy(
                         endTime = System.currentTimeMillis(),
                         status = ExecutionStatus.STOPPED,
                         steps = steps,
                         logs = currentLogs,
-                        resultMessage = "已取消"
+                        resultMessage = "Stopped"
                     )
                     executionRepository.saveRecord(updatedRecord)
                     executionRecords.value = executionRepository.getAllRecords()
 
-                    // 重置执行状态
+                    // 重置执行Status
                     isExecuting.value = false
 
-                    Toast.makeText(this@MainActivity, "任务已停止", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "任务Stopped", Toast.LENGTH_SHORT).show()
                     mobileAgent.value?.clearLogs()
 
-                    // 触发跳转到记录详情页
+                    // 触发跳转到records详情页
                     shouldNavigateToRecord.value = true
                 }
             } catch (e: Exception) {
-                // 更新失败记录
+                // 更新Failedrecords
                 val currentLogs = mobileAgent.value?.logs?.value ?: emptyList()
                 val updatedRecord = record.copy(
                     endTime = System.currentTimeMillis(),
                     status = ExecutionStatus.FAILED,
                     logs = currentLogs,
-                    resultMessage = "错误: ${e.message}"
+                    resultMessage = "Error: ${e.message}"
                 )
                 executionRepository.saveRecord(updatedRecord)
                 executionRecords.value = executionRepository.getAllRecords()
 
-                // 重置执行状态
+                // 重置执行Status
                 isExecuting.value = false
 
-                Toast.makeText(this@MainActivity, "错误: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@MainActivity, "Error: ${e.message}", Toast.LENGTH_LONG).show()
 
-                // 延迟3秒后清空日志，恢复默认状态
+                // 延迟3s后清空Logs 恢复默认Status
                 kotlinx.coroutines.delay(3000)
                 mobileAgent.value?.clearLogs()
             }
@@ -564,12 +564,12 @@ class MainActivity : ComponentActivity() {
     private fun generateTitle(instruction: String): String {
         // 生成简短标题
         val keywords = listOf(
-            "打开" to "打开应用",
+            "Open" to "Openapp",
             "点" to "点餐",
-            "发" to "发送消息",
-            "看" to "浏览内容",
-            "搜" to "搜索",
-            "设置" to "调整设置",
+            "发" to "Send消息",
+            "看" to "浏览Content",
+            "搜" to "Search",
+            "Settings" to "调整Settings",
             "播放" to "播放媒体"
         )
         for ((key, title) in keywords) {

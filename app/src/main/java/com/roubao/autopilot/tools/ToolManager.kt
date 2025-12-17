@@ -7,7 +7,7 @@ import com.roubao.autopilot.controller.DeviceController
 /**
  * 工具管理器
  *
- * 负责初始化、注册和管理所有 Tools
+ * 负责Initialize、注册和管理所有 Tools
  * 作为 Tool 层的统一入口
  */
 class ToolManager private constructor(
@@ -16,7 +16,7 @@ class ToolManager private constructor(
     private val appScanner: AppScanner
 ) {
 
-    // 持有各个工具的引用（方便直接调用）
+    // 持有各tools的引用（方便直接调用）
     lateinit var searchAppsTool: SearchAppsTool
         private set
     lateinit var openAppTool: OpenAppTool
@@ -31,10 +31,10 @@ class ToolManager private constructor(
         private set
 
     /**
-     * 初始化所有工具
+     * Initialize所有工具
      */
     private fun initialize() {
-        // 创建工具实例
+        // Create tool instances
         searchAppsTool = SearchAppsTool(appScanner)
         openAppTool = OpenAppTool(deviceController, appScanner)
         clipboardTool = ClipboardTool(context)
@@ -42,7 +42,7 @@ class ToolManager private constructor(
         shellTool = ShellTool(deviceController)
         httpTool = HttpTool()
 
-        // 注册到全局 Registry
+        // Register to global Registry
         ToolRegistry.register(searchAppsTool)
         ToolRegistry.register(openAppTool)
         ToolRegistry.register(clipboardTool)
@@ -50,7 +50,7 @@ class ToolManager private constructor(
         ToolRegistry.register(shellTool)
         ToolRegistry.register(httpTool)
 
-        println("[ToolManager] 已初始化 ${ToolRegistry.getAll().size} 个工具")
+        println("[ToolManager] 已Initialize ${ToolRegistry.getAll().size} tools")
     }
 
     /**
@@ -68,7 +68,7 @@ class ToolManager private constructor(
     }
 
     /**
-     * 获取可用工具列表
+     * 获取可用工具list
      */
     fun getAvailableTools(): List<Tool> {
         return ToolRegistry.getAll()
@@ -79,7 +79,7 @@ class ToolManager private constructor(
         private var instance: ToolManager? = null
 
         /**
-         * 初始化单例
+         * Initialize单例
          */
         fun init(
             context: Context,
@@ -98,11 +98,11 @@ class ToolManager private constructor(
          * 获取单例
          */
         fun getInstance(): ToolManager {
-            return instance ?: throw IllegalStateException("ToolManager 未初始化，请先调用 init()")
+            return instance ?: throw IllegalStateException("ToolManager 未Initialize 请先调用 init()")
         }
 
         /**
-         * 检查是否已初始化
+         * 检查是否已Initialize
          */
         fun isInitialized(): Boolean = instance != null
     }

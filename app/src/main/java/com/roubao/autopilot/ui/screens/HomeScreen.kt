@@ -38,7 +38,7 @@ import com.roubao.autopilot.ui.theme.Primary
 import com.roubao.autopilot.ui.theme.Secondary
 
 /**
- * 预设命令
+ * Preset commands
  */
 data class PresetCommand(
     val icon: String,
@@ -47,12 +47,12 @@ data class PresetCommand(
 )
 
 val presetCommands = listOf(
-    PresetCommand("🍔", "点汉堡", "帮我点个附近好吃的汉堡"),
-    PresetCommand("📕", "发小红书", "帮我发一条小红书，内容是今日份好心情"),
-    PresetCommand("📺", "刷B站", "打开B站搜索肉包，找到第一个视频点个赞"),
-    PresetCommand("✈️", "旅游攻略", "用小美帮我查一下三亚旅游攻略"),
-    PresetCommand("🎵", "听音乐", "打开网易云音乐播放每日推荐"),
-    PresetCommand("🛒", "点外卖", "帮我在美团点一份猪脚饭")
+    PresetCommand("🍔", "Order Burger", "Order a tasty burger nearby for me"),
+    PresetCommand("📕", "Post to Xiaohongshu", "Post to Xiaohongshu sharing my good mood today"),
+    PresetCommand("📺", "Browse Bilibili", "Open Bilibili search Baozi find first video and like it"),
+    PresetCommand("✈️", "Travel Guide", "Use Meituan to check Sanya travel guide"),
+    PresetCommand("🎵", "Listen to Music", "Open NetEase Music and play daily recommendations"),
+    PresetCommand("🛒", "Order Takeout", "Order pork trotter rice on Meituan for me")
 )
 
 @OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
@@ -70,25 +70,25 @@ fun HomeScreen(
 ) {
     val colors = BaoziTheme.colors
     var inputText by remember { mutableStateOf("") }
-    // 使用 isExecuting 或 agentState?.isRunning 来判断是否运行中
+    // Use isExecuting or agentState?.isRunning to check if running
     val isRunning = isExecuting || agentState?.isRunning == true
     val listState = rememberLazyListState()
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
-    // 记录上一次的运行状态，用于检测任务结束
+    // Record last run status to detect task end
     var wasRunning by remember { mutableStateOf(false) }
 
-    // 任务结束时清空输入框
+    // Clear input box when task ends
     LaunchedEffect(isRunning) {
         if (wasRunning && !isRunning) {
-            // 从运行中变为未运行，说明任务结束
+            // Changed from running to not running, means task ended
             inputText = ""
         }
         wasRunning = isRunning
     }
 
-    // 自动滚动到底部
+    // Auto scroll to bottom
     LaunchedEffect(logs.size) {
         if (logs.isNotEmpty()) {
             listState.animateScrollToItem(logs.size - 1)
@@ -101,7 +101,7 @@ fun HomeScreen(
             .background(colors.background)
             .imePadding()
     ) {
-        // 顶部标题
+        // Header title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -114,19 +114,19 @@ fun HomeScreen(
             ) {
                 Column {
                     Text(
-                        text = "肉包",
+                        text = "Baozi",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.primary
                     )
                     Text(
-                        text = if (shizukuAvailable) "准备就绪，告诉我你想做什么" else "请先连接 Shizuku",
+                        text = if (shizukuAvailable) "Ready to help, what do you want to do?" else "Please connect Shizuku first",
                         fontSize = 14.sp,
                         color = if (shizukuAvailable) colors.textSecondary else colors.error
                     )
                 }
 
-                // 未连接时显示刷新按钮
+                // Show Refresh button when Not Connected
                 if (!shizukuAvailable) {
                     IconButton(
                         onClick = onRefreshShizuku,
@@ -136,7 +136,7 @@ fun HomeScreen(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "刷新 Shizuku 状态",
+                            contentDescription = "Refresh Shizuku Status",
                             tint = colors.primary
                         )
                     }
@@ -144,14 +144,14 @@ fun HomeScreen(
             }
         }
 
-        // 内容区域
+        // Content Area
         Box(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
         ) {
             if (isRunning || logs.isNotEmpty()) {
-                // 执行中或有日志时显示日志
+                // Show Logs when In Progress or have logs
                 ExecutionLogView(
                     logs = logs,
                     isRunning = isRunning,
@@ -161,7 +161,7 @@ fun HomeScreen(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                // 空闲时显示预设命令
+                // Show Preset commands when idle
                 PresetCommandsView(
                     onCommandClick = { command ->
                         if (shizukuAvailable) {
@@ -175,20 +175,20 @@ fun HomeScreen(
             }
         }
 
-        // 底部输入区域
+        // Bottom Input Area
         InputArea(
             inputText = inputText,
             onInputChange = { inputText = it },
             onExecute = {
                 if (inputText.isNotBlank()) {
-                    // 收起键盘并清除焦点
+                    // Hide keyboard and clear focus
                     keyboardController?.hide()
                     focusManager.clearFocus()
                     onExecute(inputText)
                 }
             },
             onStop = {
-                // 停止任务并清空输入框
+                // Stop task and clear input box
                 inputText = ""
                 onStop()
             },
@@ -214,7 +214,7 @@ fun PresetCommandsView(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "试试这些指令",
+            text = "Try these commands",
             fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             color = colors.textSecondary,
@@ -235,7 +235,7 @@ fun PresetCommandsView(
                         modifier = Modifier.weight(1f)
                     )
                 }
-                // 如果是奇数，补一个空白
+                // If odd number, add spacer
                 if (rowCommands.size == 1) {
                     Spacer(modifier = Modifier.weight(1f))
                 }
@@ -298,12 +298,12 @@ fun ExecutionLogView(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
-        // 执行状态指示器
+        // Execution Status Indicator
         if (isRunning) {
             ExecutingIndicator(currentStep = currentStep, currentModel = currentModel)
         }
 
-        // 日志列表
+        // Log list
         LazyColumn(
             state = listState,
             modifier = Modifier
@@ -354,7 +354,7 @@ fun ExecutingIndicator(currentStep: Int, currentModel: String = "") {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 动画圆点
+                        // Dot Animation
                         Box(
                             modifier = Modifier
                                 .size(12.dp)
@@ -367,13 +367,13 @@ fun ExecutingIndicator(currentStep: Int, currentModel: String = "") {
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
-                            text = "正在执行 Step $currentStep",
+                            text = "Executing Step $currentStep",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.primary
                         )
                     }
-                    // 显示当前模型
+                    // Show Current Model
                     if (currentModel.isNotEmpty()) {
                         Text(
                             text = currentModel,
@@ -386,7 +386,7 @@ fun ExecutingIndicator(currentStep: Int, currentModel: String = "") {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 进度条
+                // Progress Bar
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -454,7 +454,7 @@ fun InputArea(
             horizontalArrangement = if (isRunning) Arrangement.Center else Arrangement.Start
         ) {
             if (isRunning) {
-                // 运行中只显示停止按钮
+                // Show Stop Button when running
                 Button(
                     onClick = onStop,
                     colors = ButtonDefaults.buttonColors(
@@ -467,21 +467,21 @@ fun InputArea(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "停止",
+                        contentDescription = "Stop",
                         tint = Color.White,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "停止执行",
+                        text = "Stop Execution",
                         color = Color.White,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
             } else {
-                // 非运行状态显示输入框和发送按钮
-                // 输入框
+                // Show Input and Send when not running
+                // Input Box
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -497,7 +497,7 @@ fun InputArea(
                         .padding(horizontal = 20.dp, vertical = 14.dp)
                 ) {
                     if (enabled) {
-                        // Shizuku 已连接，显示可编辑的输入框
+                        // Shizuku Connected Show Editable Input
                         BasicTextField(
                             value = inputText,
                             onValueChange = onInputChange,
@@ -511,7 +511,7 @@ fun InputArea(
                                 Box {
                                     if (inputText.isEmpty()) {
                                         Text(
-                                            text = "告诉肉包你想做什么...",
+                                            text = "Tell Baozi what you want to do...",
                                             color = colors.textHint,
                                             fontSize = 15.sp
                                         )
@@ -521,9 +521,9 @@ fun InputArea(
                             }
                         )
                     } else {
-                        // Shizuku 未连接，显示提示文字
+                        // Shizuku Not Connected Show Hint
                         Text(
-                            text = "请先连接 Shizuku",
+                            text = "Please connect Shizuku first",
                             color = colors.textHint,
                             fontSize = 15.sp
                         )
@@ -532,7 +532,7 @@ fun InputArea(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // 发送按钮
+                // Send Button
                 IconButton(
                     onClick = onExecute,
                     enabled = enabled && inputText.isNotBlank(),
@@ -546,7 +546,7 @@ fun InputArea(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Send,
-                        contentDescription = "发送",
+                        contentDescription = "Send",
                         tint = Color.White,
                         modifier = Modifier.size(24.dp)
                     )

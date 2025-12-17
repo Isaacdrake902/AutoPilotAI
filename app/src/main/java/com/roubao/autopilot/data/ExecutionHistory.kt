@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * 执行步骤记录
+ * 执行stepsrecords
  */
 data class ExecutionStep(
     val stepNumber: Int,
@@ -18,7 +18,7 @@ data class ExecutionStep(
     val action: String,
     val description: String,
     val thought: String,
-    val outcome: String,  // A=成功, B=部分成功, C=失败
+    val outcome: String,  // A=成功, B=部m成功, C=Failed
     val screenshotPath: String? = null
 ) {
     fun toJson(): JSONObject = JSONObject().apply {
@@ -45,7 +45,7 @@ data class ExecutionStep(
 }
 
 /**
- * 执行记录
+ * Execution Records
  */
 data class ExecutionRecord(
     val id: String = UUID.randomUUID().toString(),
@@ -67,7 +67,7 @@ data class ExecutionRecord(
 
     val formattedDuration: String get() {
         val seconds = duration / 1000
-        return if (seconds < 60) "${seconds}秒" else "${seconds / 60}分${seconds % 60}秒"
+        return if (seconds < 60) "${seconds}s" else "${seconds / 60}m${seconds % 60}s"
     }
 
     fun toJson(): JSONObject = JSONObject().apply {
@@ -125,7 +125,7 @@ enum class ExecutionStatus {
 }
 
 /**
- * 执行记录仓库
+ * Execution Records仓库
  */
 class ExecutionRepository(private val context: Context) {
 
@@ -133,7 +133,7 @@ class ExecutionRepository(private val context: Context) {
         get() = File(context.filesDir, "execution_history.json")
 
     /**
-     * 获取所有记录
+     * 获取所有records
      */
     suspend fun getAllRecords(): List<ExecutionRecord> = withContext(Dispatchers.IO) {
         try {
@@ -152,14 +152,14 @@ class ExecutionRepository(private val context: Context) {
     }
 
     /**
-     * 获取单条记录
+     * 获取单records
      */
     suspend fun getRecord(id: String): ExecutionRecord? = withContext(Dispatchers.IO) {
         getAllRecords().find { it.id == id }
     }
 
     /**
-     * 保存记录
+     * Saverecords
      */
     suspend fun saveRecord(record: ExecutionRecord) = withContext(Dispatchers.IO) {
         try {
@@ -170,7 +170,7 @@ class ExecutionRepository(private val context: Context) {
             } else {
                 records.add(0, record)
             }
-            // 只保留最近100条记录
+            // 只保留最近100records
             val trimmedRecords = records.take(100)
             val array = JSONArray().apply {
                 trimmedRecords.forEach { put(it.toJson()) }
@@ -182,7 +182,7 @@ class ExecutionRepository(private val context: Context) {
     }
 
     /**
-     * 删除记录
+     * Deleterecords
      */
     suspend fun deleteRecord(id: String) = withContext(Dispatchers.IO) {
         try {
@@ -197,7 +197,7 @@ class ExecutionRepository(private val context: Context) {
     }
 
     /**
-     * 清空所有记录
+     * 清空所有records
      */
     suspend fun clearAll() = withContext(Dispatchers.IO) {
         try {

@@ -47,7 +47,7 @@ class ActionReflector {
     }
 
     /**
-     * 解析反思响应
+     * 解析反思Response
      */
     fun parseResponse(response: String): ReflectorResult {
         val outcomeSection = response

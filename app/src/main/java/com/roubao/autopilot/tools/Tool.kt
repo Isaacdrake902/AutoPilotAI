@@ -43,16 +43,16 @@ data class ToolParam(
 /**
  * Tool 接口 - 所有工具的基类
  *
- * Tool 是原子能力层，提供单一、可复用的功能
- * - 每个 Tool 完成一个独立的操作
+ * Tool 是原子Capabilities层 提供单一、可复用的功能
+ * - each step独立的操作
  * - Tool 之间可以组合使用
- * - Tool 的输入输出是结构化的
+ * - Tool 的Input输出是结构化的
  */
 interface Tool {
     /** 工具名称（唯一标识） */
     val name: String
 
-    /** 工具显示名称 */
+    /** 工具Show名称 */
     val displayName: String
 
     /** 工具描述 */
@@ -128,17 +128,17 @@ object ToolRegistry {
      * 根据名称执行工具
      */
     suspend fun execute(toolName: String, params: Map<String, Any?>): ToolResult {
-        val tool = tools[toolName] ?: return ToolResult.Error("未找到工具: $toolName")
+        val tool = tools[toolName] ?: return ToolResult.Error("未find工具: $toolName")
 
         val errors = tool.validateParams(params)
         if (errors.isNotEmpty()) {
-            return ToolResult.Error("参数错误: ${errors.joinToString(", ")}")
+            return ToolResult.Error("参数Error: ${errors.joinToString(", ")}")
         }
 
         return try {
             tool.execute(params)
         } catch (e: Exception) {
-            ToolResult.Error("执行失败: ${e.message}")
+            ToolResult.Error("Failed: ${e.message}")
         }
     }
 }

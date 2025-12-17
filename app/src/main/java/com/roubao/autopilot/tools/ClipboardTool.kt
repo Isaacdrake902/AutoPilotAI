@@ -9,21 +9,21 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 /**
- * 剪贴板工具
+ * Clipboard工具
  *
- * 提供剪贴板的读写功能
+ * 提供Clipboard的读写功能
  */
 class ClipboardTool(private val context: Context) : Tool {
 
     override val name = "clipboard"
-    override val displayName = "剪贴板"
-    override val description = "读取或写入系统剪贴板内容"
+    override val displayName = "Clipboard"
+    override val description = "读取或写入系统ClipboardContent"
 
     override val params = listOf(
         ToolParam(
             name = "action",
             type = "string",
-            description = "操作类型：read（读取）或 write（写入）",
+            description = "操作类型:read（读取）或 write（写入）",
             required = true
         ),
         ToolParam(
@@ -35,7 +35,7 @@ class ClipboardTool(private val context: Context) : Tool {
         ToolParam(
             name = "label",
             type = "string",
-            description = "剪贴板标签（可选）",
+            description = "Clipboard标签（可选）",
             required = false,
             defaultValue = "roubao"
         )
@@ -55,7 +55,7 @@ class ClipboardTool(private val context: Context) : Tool {
             "read" -> readClipboard()
             "write" -> {
                 val text = params["text"] as? String
-                    ?: return ToolResult.Error("write 操作需要 text 参数")
+                    ?: return ToolResult.Error("write 操作Requires text 参数")
                 val label = params["label"] as? String ?: "roubao"
                 writeClipboard(text, label)
             }
@@ -64,29 +64,29 @@ class ClipboardTool(private val context: Context) : Tool {
     }
 
     /**
-     * 读取剪贴板内容
+     * 读取ClipboardContent
      */
     private suspend fun readClipboard(): ToolResult = suspendCancellableCoroutine { cont ->
         mainHandler.post {
             try {
                 val clip = clipboardManager.primaryClip
                 if (clip == null || clip.itemCount == 0) {
-                    cont.resume(ToolResult.Success(data = "", message = "剪贴板为空"))
+                    cont.resume(ToolResult.Success(data = "", message = "Clipboard为空"))
                 } else {
                     val text = clip.getItemAt(0).coerceToText(context).toString()
                     cont.resume(ToolResult.Success(
                         data = text,
-                        message = "已读取剪贴板内容（${text.length} 字符）"
+                        message = "已读取ClipboardContent（${text.length} 字符）"
                     ))
                 }
             } catch (e: Exception) {
-                cont.resume(ToolResult.Error("读取剪贴板失败: ${e.message}"))
+                cont.resume(ToolResult.Error("读取ClipboardFailed: ${e.message}"))
             }
         }
     }
 
     /**
-     * 写入剪贴板内容
+     * 写入ClipboardContent
      */
     private suspend fun writeClipboard(text: String, label: String): ToolResult = suspendCancellableCoroutine { cont ->
         mainHandler.post {
@@ -95,16 +95,16 @@ class ClipboardTool(private val context: Context) : Tool {
                 clipboardManager.setPrimaryClip(clip)
                 cont.resume(ToolResult.Success(
                     data = text,
-                    message = "已写入剪贴板（${text.length} 字符）"
+                    message = "已写入Clipboard（${text.length} 字符）"
                 ))
             } catch (e: Exception) {
-                cont.resume(ToolResult.Error("写入剪贴板失败: ${e.message}"))
+                cont.resume(ToolResult.Error("写入ClipboardFailed: ${e.message}"))
             }
         }
     }
 
     /**
-     * 同步读取（用于非协程环境）
+     * 同steps读取（for非协程环境）
      */
     fun readSync(): String? {
         var result: String? = null
@@ -128,7 +128,7 @@ class ClipboardTool(private val context: Context) : Tool {
     }
 
     /**
-     * 同步写入（用于非协程环境）
+     * 同steps写入（for非协程环境）
      */
     fun writeSync(text: String, label: String = "roubao"): Boolean {
         var success = false

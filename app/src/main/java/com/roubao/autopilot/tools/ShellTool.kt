@@ -4,10 +4,10 @@ import com.roubao.autopilot.controller.DeviceController
 import com.roubao.autopilot.data.SettingsManager
 
 /**
- * Shell 命令工具
+ * Shell command工具
  *
- * 通过 Shizuku 执行 shell 命令
- * 注意：这是一个底层工具，主要供其他工具或高级场景使用
+ * 通过 Shizuku 执行 shell command
+ * 注意:这是一items底层工具 主要供其他工具或高级场景使用
  */
 class ShellTool(
     private val deviceController: DeviceController,
@@ -15,37 +15,37 @@ class ShellTool(
 ) : Tool {
 
     override val name = "shell"
-    override val displayName = "Shell 命令"
-    override val description = "执行 shell 命令（需要 Shizuku 权限）"
+    override val displayName = "Shell command"
+    override val description = "执行 shell command（Requires Shizuku 权限）"
 
     override val params = listOf(
         ToolParam(
             name = "command",
             type = "string",
-            description = "要执行的 shell 命令",
+            description = "要执行的 shell command",
             required = true
         )
     )
 
-    // 安全白名单：允许执行的命令前缀
+    // 安全白名单:允许执行的command前缀
     private val ALLOWED_PREFIXES = listOf(
-        "input ",           // 输入操作
+        "input ",           // Input操作
         "am ",              // Activity Manager
         "pm ",              // Package Manager
         "wm ",              // Window Manager
         "screencap ",       // 截图
-        "monkey ",          // 启动应用
+        "monkey ",          // Startapp
         "dumpsys ",         // 系统信息
         "getprop ",         // 系统属性
-        "settings ",        // 系统设置
+        "settings ",        // 系统Settings
         "content ",         // Content Provider
-        "cmd ",             // 通用命令
-        "ls ",              // 文件列表
+        "cmd ",             // 通用command
+        "ls ",              // 文件list
         "cat ",             // 读文件
         "echo "             // 输出
     )
 
-    // 基础黑名单：始终禁止的危险命令
+    // 基础黑名单:始终禁止的危险command
     private val BASE_BLOCKED_COMMANDS = listOf(
         "rm -rf",
         "rm -r /",
@@ -58,18 +58,18 @@ class ShellTool(
         "chmod 777 /"
     )
 
-    // su -c 命令（需要特殊权限才能使用）
+    // su -c command（Requires特殊权限才能使用）
     private val SU_COMMAND = "su -c"
 
     /**
      * 获取当前生效的黑名单
-     * 根据设置决定是否允许 su -c
+     * 根据Settings决定是否允许 su -c
      */
     private fun getBlockedCommands(): List<String> {
         val settings = settingsManager?.settings?.value
         val suEnabled = settings?.rootModeEnabled == true && settings.suCommandEnabled == true
         return if (suEnabled) {
-            BASE_BLOCKED_COMMANDS // su -c 已启用，不在黑名单中
+            BASE_BLOCKED_COMMANDS // su -c 已启用 不在黑名单中
         } else {
             BASE_BLOCKED_COMMANDS + SU_COMMAND // su -c 禁用
         }
@@ -85,17 +85,17 @@ class ShellTool(
             return ToolResult.Error(securityCheck)
         }
 
-        // 由于 DeviceController.exec 是 private，这里需要通过已有的公开方法
+        // 由于 DeviceController.exec 是 private 这里Requires通过已有的公开方法
         // 或者扩展 DeviceController
-        // 暂时只支持特定的安全命令
+        // 暂时只支持特定的安全command
         return try {
             val result = executeCommand(command)
             ToolResult.Success(
                 data = result,
-                message = "命令执行完成"
+                message = "command执行Done"
             )
         } catch (e: Exception) {
-            ToolResult.Error("执行失败: ${e.message}")
+            ToolResult.Error("Failed: ${e.message}")
         }
     }
 
@@ -109,26 +109,26 @@ class ShellTool(
         // 检查黑名单
         for (blocked in blockedCommands) {
             if (lowerCmd.contains(blocked.lowercase())) {
-                // 特殊提示 su -c 命令
+                // Special hint for su -c command
                 if (blocked == SU_COMMAND) {
-                    return "安全限制：su -c 命令需要在设置中开启「Root 模式」和「允许 su -c」"
+                    return "Security restriction: su -c command requires enabling 'Root Mode' and 'Allow su -c' in Settings"
                 }
-                return "安全限制：禁止执行此类命令"
+                return "Security restriction: This command is prohibited"
             }
         }
 
-        // 检查白名单（可选，如果需要更严格的控制可以启用）
+        // 检查白名单（可选e.g.果Requires更严格的控制可以启用）
         // val isAllowed = ALLOWED_PREFIXES.any { lowerCmd.startsWith(it.lowercase()) }
         // if (!isAllowed) {
-        //     return "安全限制：命令不在允许列表中"
+        //     return "安全限制:command不在允许list中"
         // }
 
         return null
     }
 
     /**
-     * 执行命令
-     * 注意：这里需要扩展 DeviceController 或使用反射
+     * 执行command
+     * 注意:这里Requires扩展 DeviceController 或使用反射
      * 暂时使用简化实现
      */
     private fun executeCommand(command: String): String {

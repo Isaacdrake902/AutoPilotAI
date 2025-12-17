@@ -7,11 +7,11 @@ import org.json.JSONObject
 import java.io.ByteArrayOutputStream
 
 /**
- * 对话记忆管理 - 保存完整对话历史，图片用完即删
+ * 对话记忆管理 - Save完整对话历史 图片用完即删
  *
- * 参考 Open-AutoGLM 的设计：
- * - 保持完整对话历史，让模型看到之前所有操作
- * - 图片用完即删，节省 token
+ * 参考 Open-AutoGLM 的设计:
+ * - 保持完整对话历史 让Model看到之前所有操作
+ * - 图片用完即删 节省 token
  */
 class ConversationMemory {
 
@@ -27,14 +27,14 @@ class ConversationMemory {
     )
 
     /**
-     * 添加系统消息（通常只在开始时添加一次）
+     * Add系统消息（通常只在Start时Add一次）
      */
     fun addSystemMessage(text: String) {
         messages.add(Message(role = "system", textContent = text))
     }
 
     /**
-     * 添加用户消息（带截图）
+     * Add用户消息（带截图）
      */
     fun addUserMessage(text: String, image: Bitmap? = null) {
         val imageBase64 = image?.let { bitmapToBase64(it) }
@@ -42,21 +42,21 @@ class ConversationMemory {
     }
 
     /**
-     * 添加助手消息
+     * Add助手消息
      */
     fun addAssistantMessage(text: String) {
         messages.add(Message(role = "assistant", textContent = text))
     }
 
     /**
-     * 删除最后一条用户消息中的图片（节省 token）
-     * 在获取模型响应后调用
+     * Delete最后一条用户消息中的图片（节省 token）
+     * 在获取ModelResponse后调用
      */
     fun stripLastUserImage() {
         for (i in messages.indices.reversed()) {
             if (messages[i].role == "user" && messages[i].imageBase64 != null) {
                 messages[i].imageBase64 = null
-                println("[ConversationMemory] 已删除第 $i 条消息的图片")
+                println("[ConversationMemory] 已Delete第 $i 条消息的图片")
                 break
             }
         }
@@ -81,7 +81,7 @@ class ConversationMemory {
             val msgJson = JSONObject()
             msgJson.put("role", msg.role)
 
-            // 判断是否需要包含图片
+            // 判断是否Requires包含图片
             val shouldIncludeImage = includeImages &&
                     msg.imageBase64 != null &&
                     index == messages.indexOfLast { it.role == "user" }
@@ -112,7 +112,7 @@ class ConversationMemory {
     }
 
     /**
-     * 获取消息数量
+     * 获Cancel息数量
      */
     fun size(): Int = messages.size
 
@@ -125,7 +125,7 @@ class ConversationMemory {
 
     /**
      * 获取 token 估算（粗略）
-     * 中文约 2 字符/token，英文约 4 字符/token
+     * 中文约 2 字符/token 英文约 4 字符/token
      */
     fun estimateTokens(): Int {
         var total = 0

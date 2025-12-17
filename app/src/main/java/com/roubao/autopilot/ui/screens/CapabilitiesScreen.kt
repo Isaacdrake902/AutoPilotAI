@@ -24,7 +24,7 @@ import com.roubao.autopilot.tools.ToolManager
 import com.roubao.autopilot.ui.theme.BaoziTheme
 
 /**
- * 工具信息（用于展示）
+ * Tool Info (for display)
  */
 data class ToolInfo(
     val name: String,
@@ -32,7 +32,7 @@ data class ToolInfo(
 )
 
 /**
- * Agent 角色信息
+ * Agent Info
  */
 data class AgentInfo(
     val name: String,
@@ -43,69 +43,69 @@ data class AgentInfo(
 )
 
 /**
- * 预定义的 Agents 列表
+ * Predefined Agents list
  */
 val agentsList = listOf(
     AgentInfo(
         name = "Manager",
         icon = "🎯",
-        role = "规划者",
-        description = "负责理解用户意图，制定高层次的执行计划，并跟踪任务进度。",
+        role = "Planner",
+        description = "Responsible for understanding user intent, creating high-level execution plans, and tracking task progress.",
         responsibilities = listOf(
-            "分析用户请求，理解真实意图",
-            "将复杂任务分解为可执行的子目标",
-            "制定执行计划和步骤顺序",
-            "根据执行反馈动态调整计划"
+            "Analyze user request and understand real intent",
+            "Decompose complex tasks into executable sub-goals",
+            "Create execution plan and step sequence",
+            "Dynamically adjust plan based on execution feedback"
         )
     ),
     AgentInfo(
         name = "Executor",
         icon = "⚡",
-        role = "执行者",
-        description = "负责分析当前屏幕状态，决定具体的操作动作。",
+        role = "Executor",
+        description = "Responsible for analyzing current screen state and deciding concrete actions.",
         responsibilities = listOf(
-            "分析屏幕截图，理解界面元素",
-            "根据计划选择下一步操作",
-            "确定点击、滑动、输入等具体动作",
-            "输出精确的操作坐标和参数"
+            "Analyze screen screenshots to understand UI elements",
+            "Choose next step action based on plan",
+            "Confirm specific actions like Click, Swipe, Input",
+            "Output precise action coordinates and parameters"
         )
     ),
     AgentInfo(
         name = "Reflector",
         icon = "🔍",
-        role = "反思者",
-        description = "负责评估操作结果，判断动作是否成功执行。",
+        role = "Reflector",
+        description = "Responsible for evaluating execution results and judging if actions were successful.",
         responsibilities = listOf(
-            "对比操作前后的屏幕变化",
-            "判断操作是否达到预期效果",
-            "识别异常情况（如弹窗、错误）",
-            "提供反馈帮助调整后续策略"
+            "Compare screen changes before and after action",
+            "Judge if operation achieved expected effect",
+            "Identify exceptions (e.g. popups, errors)",
+            "Provide feedback to help adjust subsequent strategy"
         )
     ),
     AgentInfo(
         name = "Notetaker",
         icon = "📝",
-        role = "记录者",
-        description = "负责记录执行过程中的关键信息，供其他 Agent 参考。",
+        role = "Recorder",
+        description = "Responsible for recording key information during execution for other Agents.",
         responsibilities = listOf(
-            "记录任务执行的重要节点",
-            "保存中间结果和状态信息",
-            "为后续步骤提供上下文参考",
-            "生成执行摘要和日志"
+            "Record important nodes of task execution",
+            "Save intermediate results and status info",
+            "Provide context for subsequent steps",
+            "Generate execution summary and logs"
         )
     )
 )
 
 /**
- * 能力展示页面
+ * Capabilities Display Screen
  *
- * 展示 Agents 和 Tools（只读）
+ * Shows Agents and Tools (Read-only)
  */
 @Composable
 fun CapabilitiesScreen() {
     val colors = BaoziTheme.colors
 
-    // 获取 Tools
+    // Get Tools
     val tools = remember {
         if (ToolManager.isInitialized()) {
             ToolManager.getInstance().getAvailableTools().map { tool ->
@@ -116,18 +116,18 @@ fun CapabilitiesScreen() {
         }
     }
 
-    // 额外的内置工具（不在 ToolManager 中但是系统能力）
+    // Extra built-in tools (not in ToolManager but system capabilities)
     val builtInTools = listOf(
-        ToolInfo("screenshot", "截取当前屏幕，获取界面图像供 AI 分析"),
-        ToolInfo("tap", "点击屏幕指定坐标位置"),
-        ToolInfo("swipe", "在屏幕上滑动，支持上下左右方向"),
-        ToolInfo("type", "输入文本内容到当前焦点位置"),
-        ToolInfo("press_key", "按下系统按键（Home、Back、Enter 等）")
+        ToolInfo("screenshot", "Capture current screen to get UI image for AI analysis"),
+        ToolInfo("tap", "Click specific coordinates on screen"),
+        ToolInfo("swipe", "Swipe on screen, supporting up/down/left/right"),
+        ToolInfo("type", "Input text content to current focus"),
+        ToolInfo("press_key", "Press system keys (Home, Back, Enter, etc.)")
     )
 
     val allTools = tools + builtInTools
 
-    // Tab 状态
+    // Tab state
     var selectedTab by remember { mutableStateOf(0) }
     val tabs = listOf("Agents (${agentsList.size})", "Tools (${allTools.size})")
 
@@ -136,7 +136,7 @@ fun CapabilitiesScreen() {
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // 顶部标题
+        // Header title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,20 +144,20 @@ fun CapabilitiesScreen() {
         ) {
             Column {
                 Text(
-                    text = "能力",
+                    text = "Capabilities",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.primary
                 )
                 Text(
-                    text = "${agentsList.size} 个 Agent，${allTools.size} 个工具",
+                    text = "${agentsList.size} Agents ${allTools.size} tools",
                     fontSize = 14.sp,
                     color = colors.textSecondary
                 )
             }
         }
 
-        // Tab 切换
+        // Tab switch
         TabRow(
             selectedTabIndex = selectedTab,
             containerColor = colors.background,
@@ -177,7 +177,7 @@ fun CapabilitiesScreen() {
             }
         }
 
-        // 内容区域
+        // Content Area
         when (selectedTab) {
             0 -> AgentsListView()
             1 -> ToolsListView(tools = allTools)
@@ -194,7 +194,7 @@ fun AgentsListView() {
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 架构说明卡片
+        // Architecture Intro Card
         item(key = "arch_intro") {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -203,14 +203,14 @@ fun AgentsListView() {
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "🧠 多 Agent 协作架构",
+                        text = "🧠 Multi-Agent Collaboration Architecture",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.primary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "肉包采用多 Agent 协作架构，每个 Agent 专注于特定职责，通过协作完成复杂的手机自动化任务。",
+                        text = "Baozi uses Multi-Agent Collaboration Architecture. Each Agent focuses on specific responsibilities, collaborating to complete complex phone automation tasks.",
                         fontSize = 13.sp,
                         color = colors.textSecondary
                     )
@@ -225,7 +225,7 @@ fun AgentsListView() {
             }
         }
 
-        // Agent 列表
+        // Agent list
         items(agentsList, key = { it.name }) { agent ->
             AgentCard(agent = agent)
         }
@@ -249,7 +249,7 @@ fun AgentCard(agent: AgentInfo) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Agent 图标
+                // Agent Icon
                 Box(
                     modifier = Modifier
                         .size(56.dp)
@@ -299,12 +299,12 @@ fun AgentCard(agent: AgentInfo) {
 
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "收起" else "展开",
+                    contentDescription = if (expanded) "Collapse" else "Expand",
                     tint = colors.textHint
                 )
             }
 
-            // 展开显示职责列表
+            // Expand to show responsibilities
             AnimatedVisibility(
                 visible = expanded,
                 enter = expandVertically() + fadeIn(),
@@ -314,7 +314,7 @@ fun AgentCard(agent: AgentInfo) {
                     modifier = Modifier.padding(top = 16.dp)
                 ) {
                     Text(
-                        text = "职责",
+                        text = "Responsibilities",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = colors.textPrimary
@@ -350,7 +350,7 @@ fun AgentCard(agent: AgentInfo) {
 @Composable
 fun ToolsListView(tools: List<ToolInfo>) {
     if (tools.isEmpty()) {
-        EmptyState(message = "暂无工具")
+        EmptyState(message = "No tools available")
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -368,7 +368,7 @@ fun ToolsListView(tools: List<ToolInfo>) {
 fun ToolCard(tool: ToolInfo) {
     val colors = BaoziTheme.colors
 
-    // 根据工具名获取图标
+    // Get icon by tool name
     val toolIcon = when (tool.name) {
         "search_apps" -> "🔍"
         "open_app" -> "📱"
@@ -390,13 +390,13 @@ fun ToolCard(tool: ToolInfo) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 工具图标
+            // Tool Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
                     .background(colors.secondary.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = toolIcon,

@@ -23,12 +23,12 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
- * 设备控制器 - 通过 Shizuku UserService 执行 shell 命令
+ * Device Controller - Execute shell command via Shizuku UserService
  */
 class DeviceController(private val context: Context? = null) {
 
     companion object {
-        // 使用 /data/local/tmp，shell 用户有权限访问
+        // Use /data/local/tmp as shell user has permission
         private const val SCREENSHOT_PATH = "/data/local/tmp/autopilot_screen.png"
     }
 
@@ -65,7 +65,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 绑定 Shizuku UserService
+     * Bind Shizuku UserService
      */
     fun bindService() {
         if (!isShizukuAvailable()) {
@@ -80,7 +80,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 解绑服务
+     * Unbind service
      */
     fun unbindService() {
         try {
@@ -91,7 +91,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 检查 Shizuku 是否可用
+     * Check if Shizuku is available
      */
     fun isShizukuAvailable(): Boolean {
         return try {
@@ -102,23 +102,23 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 检查服务是否可用
+     * Check if service is available
      */
     fun isAvailable(): Boolean {
         return serviceBound && shellService != null
     }
 
     /**
-     * Shizuku 权限级别
+     * Shizuku Privilege Level
      */
     enum class ShizukuPrivilegeLevel {
-        NONE,       // 未连接
-        ADB,        // ADB 模式 (UID 2000)
-        ROOT        // Root 模式 (UID 0)
+        NONE,       // Not Connected
+        ADB,        // ADB Mode (UID 2000)
+        ROOT        // Root Mode (UID 0)
     }
 
     /**
-     * 获取当前 Shizuku 权限级别
+     * Get current Shizuku Privilege Level
      * UID 0 = root, UID 2000 = shell (ADB)
      */
     fun getShizukuPrivilegeLevel(): ShizukuPrivilegeLevel {
@@ -139,7 +139,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 执行 shell 命令 (本地，无权限)
+     * Execute shell command (Local, no root/adb)
      */
     private fun execLocal(command: String): String {
         return try {
@@ -156,7 +156,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 执行 shell 命令 (通过 Shizuku)
+     * Execute shell command (via Shizuku)
      */
     private fun exec(command: String): String {
         return try {
@@ -168,122 +168,122 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 点击屏幕
+     * Click screen
      */
     fun tap(x: Int, y: Int) {
         exec("input tap $x $y")
     }
 
     /**
-     * 长按
+     * Long press
      */
     fun longPress(x: Int, y: Int, durationMs: Int = 1000) {
         exec("input swipe $x $y $x $y $durationMs")
     }
 
     /**
-     * 双击
+     * Double tap
      */
     fun doubleTap(x: Int, y: Int) {
         exec("input tap $x $y && input tap $x $y")
     }
 
     /**
-     * 滑动
+     * Swipe
      */
     fun swipe(x1: Int, y1: Int, x2: Int, y2: Int, durationMs: Int = 500) {
         exec("input swipe $x1 $y1 $x2 $y2 $durationMs")
     }
 
     /**
-     * 输入文本 (使用剪贴板方式，支持中文)
+     * Input text (Use Clipboard method for special characters compatibility)
      */
     fun type(text: String) {
-        // 检查是否包含非 ASCII 字符
+        // Check for non-ASCII characters
         val hasNonAscii = text.any { it.code > 127 }
 
         if (hasNonAscii) {
-            // 中文等使用剪贴板方式
+            // Use Clipboard method for non-ASCII characters
             typeViaClipboard(text)
         } else {
-            // 纯英文数字使用 input text
+            // Use input text for ASCII
             val escaped = text.replace("'", "'\\''")
             exec("input text '$escaped'")
         }
     }
 
     /**
-     * 通过剪贴板方式输入中文
-     * 使用 Android ClipboardManager API 设置剪贴板，然后发送粘贴按键
+     * Input text via Clipboard method
+     * Use Android ClipboardManager API to set clipboard then send Paste key event
      */
     private fun typeViaClipboard(text: String) {
-        println("[DeviceController] 尝试输入中文: $text")
+        println("[DeviceController] Attempting input text: $text")
 
-        // 方法1: 使用 Android 剪贴板 API + 粘贴 (最可靠，不需要额外 App)
+        // Method 1: Use Android Clipboard API + Paste (Most reliable, no extra App required)
         if (clipboardManager != null) {
             try {
-                // 使用 CountDownLatch 等待剪贴板设置完成
+                // Use CountDownLatch to wait for clipboard set
                 val latch = CountDownLatch(1)
                 var clipboardSet = false
 
-                // 必须在主线程操作剪贴板
+                // Must operate Clipboard on main thread
                 mainHandler.post {
                     try {
                         val clip = ClipData.newPlainText("baozi_input", text)
                         clipboardManager?.setPrimaryClip(clip)
                         clipboardSet = true
-                        println("[DeviceController] ✅ 已设置剪贴板: $text")
+                        println("[DeviceController] ✅ Clipboard set: $text")
                     } catch (e: Exception) {
-                        println("[DeviceController] ❌ 设置剪贴板异常: ${e.message}")
+                        println("[DeviceController] ❌ Set Clipboard exception: ${e.message}")
                     } finally {
                         latch.countDown()
                     }
                 }
 
-                // 等待剪贴板设置完成 (最多等 1 秒)
+                // Wait for clipboard set (Max 1s)
                 val success = latch.await(1, TimeUnit.SECONDS)
                 if (!success) {
-                    println("[DeviceController] ❌ 等待剪贴板超时")
+                    println("[DeviceController] ❌ Wait clipboard timeout")
                     return
                 }
 
                 if (!clipboardSet) {
-                    println("[DeviceController] ❌ 剪贴板设置失败")
+                    println("[DeviceController] ❌ Set Clipboard failed")
                     return
                 }
 
-                // 稍等一下确保剪贴板生效
+                // Wait a bit to ensure Clipboard is ready
                 Thread.sleep(200)
 
-                // 发送粘贴按键 (KEYCODE_PASTE = 279)
+                // Send Paste key event (KEYCODE_PASTE = 279)
                 exec("input keyevent 279")
-                println("[DeviceController] ✅ 已发送粘贴按键")
+                println("[DeviceController] ✅ Paste key sent")
                 return
             } catch (e: Exception) {
-                println("[DeviceController] ❌ 剪贴板方式失败: ${e.message}")
+                println("[DeviceController] ❌ Clipboard method failed: ${e.message}")
                 e.printStackTrace()
             }
         } else {
-            println("[DeviceController] ❌ ClipboardManager 为 null，Context 未设置")
+            println("[DeviceController] ❌ ClipboardManager is null or Context not set")
         }
 
-        // 方法2: 使用 ADB Keyboard 广播 (备选，需要安装 ADBKeyboard)
+        // Method 2: Use ADB Keyboard broadcast (Fallback, requires ADBKeyboard installed)
         val escaped = text.replace("\"", "\\\"")
         val adbKeyboardResult = exec("am broadcast -a ADB_INPUT_TEXT --es msg \"$escaped\"")
-        println("[DeviceController] ADBKeyboard 广播结果: $adbKeyboardResult")
+        println("[DeviceController] ADBKeyboard broadcast result: $adbKeyboardResult")
 
         if (adbKeyboardResult.contains("result=0")) {
-            println("[DeviceController] ✅ ADBKeyboard 输入成功")
+            println("[DeviceController] ✅ ADBKeyboard Input success")
             return
         }
 
-        // 方法3: 使用 cmd input text (Android 12+ 可能支持 UTF-8)
-        println("[DeviceController] 尝试 cmd input text...")
+        // Method 3: Use cmd input text (Android 12+ may support UTF-8)
+        println("[DeviceController] Trying cmd input text...")
         exec("cmd input text '$text'")
     }
 
     /**
-     * 输入文本 (逐字符，兼容性更好)
+     * Input text (Char by char, better compatibility)
      */
     fun typeCharByChar(text: String) {
         text.forEach { char ->
@@ -293,7 +293,7 @@ class DeviceController(private val context: Context? = null) {
                 char.isLetterOrDigit() && char.code <= 127 -> exec("input text $char")
                 char in "-.,!?@'/:;()" -> exec("input text \"$char\"")
                 else -> {
-                    // 非 ASCII 字符使用广播
+                    // Use broadcast for non-ASCII characters
                     exec("am broadcast -a ADB_INPUT_TEXT --es msg \"$char\"")
                 }
             }
@@ -301,21 +301,21 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 返回键
+     * Back key
      */
     fun back() {
         exec("input keyevent 4")
     }
 
     /**
-     * Home 键
+     * Home key
      */
     fun home() {
         exec("input keyevent 3")
     }
 
     /**
-     * 回车键
+     * Enter key
      */
     fun enter() {
         exec("input keyevent 66")
@@ -328,31 +328,31 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 截图结果
+     * Screenshot Result
      */
     data class ScreenshotResult(
         val bitmap: Bitmap,
-        val isSensitive: Boolean = false,  // 是否是敏感页面（截图失败）
-        val isFallback: Boolean = false    // 是否是降级的黑屏占位图
+        val isSensitive: Boolean = false,  // Is sensitive page (Screenshot failed)
+        val isFallback: Boolean = false    // Is fallback black screen placeholder
     )
 
     /**
-     * 截图 - 使用 /data/local/tmp 并设置全局可读权限
-     * 失败时返回黑屏占位图（降级处理）
+     * Screenshot - Use /data/local/tmp and set global read permission
+     * Return black screen placeholder on failure (Fallback)
      */
     suspend fun screenshotWithFallback(): ScreenshotResult = withContext(Dispatchers.IO) {
         try {
-            // 截图到 /data/local/tmp 并设置权限让 App 可读
+            // Screencap to /data/local/tmp and set permission for App to read
             val output = exec("screencap -p $SCREENSHOT_PATH && chmod 666 $SCREENSHOT_PATH")
             delay(500)
 
-            // 检查是否截图失败（敏感页面保护）
+            // Check if screenshot failed (Sensitive page protection)
             if (output.contains("Status: -1") || output.contains("Failed") || output.contains("error")) {
                 println("[DeviceController] Screenshot blocked (sensitive screen), returning fallback")
                 return@withContext createFallbackScreenshot(isSensitive = true)
             }
 
-            // 尝试直接读取
+            // Try direct read
             val file = File(SCREENSHOT_PATH)
             if (file.exists() && file.canRead() && file.length() > 0) {
                 println("[DeviceController] Reading screenshot from: $SCREENSHOT_PATH, size: ${file.length()}")
@@ -362,7 +362,7 @@ class DeviceController(private val context: Context? = null) {
                 }
             }
 
-            // 如果无法直接读取，通过 shell cat 读取二进制数据
+            // If cannot read directly, read binary data via shell cat
             println("[DeviceController] Cannot read directly, trying shell cat...")
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat $SCREENSHOT_PATH"))
             val bytes = process.inputStream.readBytes()
@@ -386,12 +386,12 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 创建黑屏占位图（降级处理）
+     * Create black screen placeholder (Fallback)
      */
     private fun createFallbackScreenshot(isSensitive: Boolean): ScreenshotResult {
         val (width, height) = getScreenSize()
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        // 默认是黑色，无需填充
+        // Default is black, no fill needed
         return ScreenshotResult(
             bitmap = bitmap,
             isSensitive = isSensitive,
@@ -400,23 +400,23 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 截图 - 使用 /data/local/tmp 并设置全局可读权限
-     * @deprecated 使用 screenshotWithFallback() 代替
+     * Screenshot - Use /data/local/tmp and set global read permission
+     * @deprecated Use screenshotWithFallback() instead
      */
     suspend fun screenshot(): Bitmap? = withContext(Dispatchers.IO) {
         try {
-            // 截图到 /data/local/tmp 并设置权限让 App 可读
+            // Screencap to /data/local/tmp and set permission for App to read
             exec("screencap -p $SCREENSHOT_PATH && chmod 666 $SCREENSHOT_PATH")
             delay(500)
 
-            // 尝试直接读取
+            // Try direct read
             val file = File(SCREENSHOT_PATH)
             if (file.exists() && file.canRead() && file.length() > 0) {
                 println("[DeviceController] Reading screenshot from: $SCREENSHOT_PATH, size: ${file.length()}")
                 return@withContext BitmapFactory.decodeFile(SCREENSHOT_PATH)
             }
 
-            // 如果无法直接读取，通过 shell cat 读取二进制数据
+            // If cannot read directly, read binary data via shell cat
             println("[DeviceController] Cannot read directly, trying shell cat...")
             val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "cat $SCREENSHOT_PATH"))
             val bytes = process.inputStream.readBytes()
@@ -436,11 +436,11 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 获取屏幕尺寸（考虑屏幕方向）
+     * Get screen size (Considering orientation)
      */
     fun getScreenSize(): Pair<Int, Int> {
         val output = exec("wm size")
-        // 输出格式: Physical size: 1080x2400
+        // Output format: Physical size: 1080x2400
         val match = Regex("(\\d+)x(\\d+)").find(output)
         val (physicalWidth, physicalHeight) = if (match != null) {
             val (w, h) = match.destructured
@@ -449,74 +449,65 @@ class DeviceController(private val context: Context? = null) {
             Pair(1080, 2400)
         }
 
-        // 检测屏幕方向
+        // Detect screen orientation
         val orientation = getScreenOrientation()
         return if (orientation == 1 || orientation == 3) {
-            // 横屏：交换宽高
+            // Landscape: Swap width and height
             Pair(physicalHeight, physicalWidth)
         } else {
-            // 竖屏
+            // Portrait
             Pair(physicalWidth, physicalHeight)
         }
     }
 
     /**
-     * 获取屏幕方向
-     * @return 0=竖屏, 1=横屏(90°), 2=倒置竖屏, 3=横屏(270°)
+     * Get screen orientation
+     * @return 0=Portrait, 1=Landscape(90°), 2=Portrait(180°), 3=Landscape(270°)
      */
     private fun getScreenOrientation(): Int {
         val output = exec("dumpsys window displays | grep mCurrentOrientation")
-        // 输出格式: mCurrentOrientation=0 或 mCurrentOrientation=1
+        // Output format: mCurrentOrientation=0 or mCurrentOrientation=1
         val match = Regex("mCurrentOrientation=(\\d)").find(output)
         return match?.groupValues?.get(1)?.toIntOrNull() ?: 0
     }
 
     /**
-     * 打开 App - 支持包名或应用名
+     * Open App - Supports package name or app name
      */
     fun openApp(packageName: String) {
-        // 常见应用名到包名的映射 (作为备选)
+        // Mapping of common app names to package names (Fallback)
         val packageMap = mapOf(
             "settings" to "com.android.settings",
-            "设置" to "com.android.settings",
+            "browser" to "com.android.browser",
             "chrome" to "com.android.chrome",
-            "浏览器" to "com.android.browser",
             "camera" to "com.android.camera",
-            "相机" to "com.android.camera",
             "phone" to "com.android.dialer",
-            "电话" to "com.android.dialer",
+            "dialer" to "com.android.dialer",
             "contacts" to "com.android.contacts",
-            "联系人" to "com.android.contacts",
             "messages" to "com.android.mms",
-            "短信" to "com.android.mms",
             "gallery" to "com.android.gallery3d",
-            "相册" to "com.android.gallery3d",
             "clock" to "com.android.deskclock",
-            "时钟" to "com.android.deskclock",
             "calculator" to "com.android.calculator2",
-            "计算器" to "com.android.calculator2",
             "calendar" to "com.android.calendar",
-            "日历" to "com.android.calendar",
-            "files" to "com.android.documentsui",
-            "文件" to "com.android.documentsui"
+            "files" to "com.android.documentsui"
         )
 
         val lowerName = packageName.lowercase().trim()
         val finalPackage = if (packageName.contains(".")) {
-            // 已经是包名格式
+            // Already package name format
             packageName
         } else {
-            // 尝试从映射中查找
+            // Try to find in mapping
             packageMap[lowerName] ?: packageName
         }
 
-        // 使用 monkey 命令启动应用 (最可靠)
+        // Use monkey command to start app (Most reliable)
         val result = exec("monkey -p $finalPackage -c android.intent.category.LAUNCHER 1 2>/dev/null")
         println("[DeviceController] openApp: $packageName -> $finalPackage, result: $result")
     }
 
     /**
-     * 通过 Intent 打开
+     * Open via Intent
      */
     fun openIntent(action: String, data: String? = null) {
         val cmd = buildString {
@@ -529,7 +520,7 @@ class DeviceController(private val context: Context? = null) {
     }
 
     /**
-     * 打开 DeepLink
+     * Open DeepLink
      */
     fun openDeepLink(uri: String) {
         exec("am start -a android.intent.action.VIEW -d \"$uri\"")

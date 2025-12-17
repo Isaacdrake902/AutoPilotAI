@@ -44,7 +44,7 @@ fun HistoryScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // 顶部标题
+        // Header title
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -52,13 +52,13 @@ fun HistoryScreen(
         ) {
             Column {
                 Text(
-                    text = "执行记录",
+                    text = "Execution Records",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.primary
                 )
                 Text(
-                    text = "共 ${records.size} 条记录",
+                    text = "Total ${records.size} records",
                     fontSize = 14.sp,
                     color = colors.textSecondary
                 )
@@ -66,7 +66,7 @@ fun HistoryScreen(
         }
 
         if (records.isEmpty()) {
-            // 空状态
+            // Empty state
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -80,19 +80,19 @@ fun HistoryScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "暂无执行记录",
+                        text = "No execution records",
                         fontSize = 16.sp,
                         color = colors.textSecondary
                     )
                     Text(
-                        text = "执行任务后记录会显示在这里",
+                        text = "Records will appear here after executing tasks",
                         fontSize = 14.sp,
                         color = colors.textHint
                     )
                 }
             }
         } else {
-            // 记录列表
+            // recordslist
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
@@ -127,19 +127,19 @@ fun HistoryRecordCard(
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
             containerColor = colors.backgroundCard,
-            title = { Text("删除记录", color = colors.textPrimary) },
-            text = { Text("确定要删除这条执行记录吗？", color = colors.textSecondary) },
+            title = { Text("Delete records", color = colors.textPrimary) },
+            text = { Text("Are you sure you want to delete this record?", color = colors.textSecondary) },
             confirmButton = {
                 TextButton(onClick = {
                     onDelete()
                     showDeleteDialog = false
                 }) {
-                    Text("删除", color = colors.error)
+                    Text("Delete", color = colors.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("取消", color = colors.textSecondary)
+                    Text("Cancel", color = colors.textSecondary)
                 }
             }
         )
@@ -158,7 +158,7 @@ fun HistoryRecordCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 状态图标
+            // Status icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -193,7 +193,7 @@ fun HistoryRecordCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // 内容
+            // Content
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = record.title,
@@ -217,12 +217,12 @@ fun HistoryRecordCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 状态标签
+                    // Status label
                     val (statusText, statusColor) = when (record.status) {
-                        ExecutionStatus.COMPLETED -> "已完成" to colors.success
-                        ExecutionStatus.FAILED -> "失败" to colors.error
-                        ExecutionStatus.STOPPED -> "已取消" to colors.warning
-                        ExecutionStatus.RUNNING -> "执行中" to colors.primary
+                        ExecutionStatus.COMPLETED -> "Completed" to colors.success
+                        ExecutionStatus.FAILED -> "Failed" to colors.error
+                        ExecutionStatus.STOPPED -> "Stopped" to colors.warning
+                        ExecutionStatus.RUNNING -> "In Progress" to colors.primary
                     }
                     Text(
                         text = statusText,
@@ -253,7 +253,7 @@ fun HistoryRecordCard(
                         color = colors.textHint
                     )
                     Text(
-                        text = "${record.steps.size}步",
+                        text = "${record.steps.size}steps",
                         fontSize = 12.sp,
                         color = colors.textHint,
                         maxLines = 1
@@ -272,13 +272,13 @@ fun HistoryRecordCard(
                 }
             }
 
-            // 删除按钮
+            // Delete button
             IconButton(
                 onClick = { showDeleteDialog = true }
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "删除",
+                    contentDescription = "Delete",
                     tint = colors.textHint
                 )
             }
@@ -293,7 +293,7 @@ fun HistoryDetailScreen(
     onBack: () -> Unit
 ) {
     val colors = BaoziTheme.colors
-    // Tab 状态：0 = 时间线，1 = 日志
+    // Tab state: 0 = Timeline 1 = Logs
     var selectedTab by remember { mutableStateOf(0) }
 
     Column(
@@ -301,7 +301,7 @@ fun HistoryDetailScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // 顶部栏
+        // Top bar
         TopAppBar(
             title = {
                 Column {
@@ -322,7 +322,7 @@ fun HistoryDetailScreen(
                 IconButton(onClick = onBack) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
-                        contentDescription = "返回",
+                        contentDescription = "Back",
                         tint = colors.textPrimary
                     )
                 }
@@ -332,7 +332,7 @@ fun HistoryDetailScreen(
             )
         )
 
-        // 任务信息卡片
+        // Task info card
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -342,7 +342,7 @@ fun HistoryDetailScreen(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "任务指令",
+                    text = "Task Instruction",
                     fontSize = 12.sp,
                     color = colors.textHint
                 )
@@ -358,13 +358,13 @@ fun HistoryDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column {
-                        Text("状态", fontSize = 12.sp, color = colors.textHint)
+                        Text("Status", fontSize = 12.sp, color = colors.textHint)
                         Text(
                             text = when (record.status) {
-                                ExecutionStatus.COMPLETED -> "已完成"
-                                ExecutionStatus.FAILED -> "失败"
-                                ExecutionStatus.STOPPED -> "已停止"
-                                ExecutionStatus.RUNNING -> "执行中"
+                                ExecutionStatus.COMPLETED -> "Completed"
+                                ExecutionStatus.FAILED -> "Failed"
+                                ExecutionStatus.STOPPED -> "Stopped"
+                                ExecutionStatus.RUNNING -> "In Progress"
                             },
                             fontSize = 14.sp,
                             color = when (record.status) {
@@ -376,25 +376,25 @@ fun HistoryDetailScreen(
                         )
                     }
                     Column {
-                        Text("步骤数", fontSize = 12.sp, color = colors.textHint)
+                        Text("Steps count", fontSize = 12.sp, color = colors.textHint)
                         Text("${record.steps.size}", fontSize = 14.sp, color = colors.textPrimary)
                     }
                     Column {
-                        Text("耗时", fontSize = 12.sp, color = colors.textHint)
+                        Text("Duration", fontSize = 12.sp, color = colors.textHint)
                         Text(record.formattedDuration, fontSize = 14.sp, color = colors.textPrimary)
                     }
                 }
             }
         }
 
-        // Tab 切换
+        // Tab switch
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 时间线 Tab
+            // Timeline Tab
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -408,14 +408,14 @@ fun HistoryDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "执行时间线",
+                    text = "Execution Timeline",
                     fontSize = 14.sp,
                     fontWeight = if (selectedTab == 0) FontWeight.Medium else FontWeight.Normal,
                     color = if (selectedTab == 0) Color.White else colors.textSecondary
                 )
             }
 
-            // 日志 Tab
+            // Logs Tab
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -429,7 +429,7 @@ fun HistoryDetailScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "执行日志",
+                    text = "Execution Logs",
                     fontSize = 14.sp,
                     fontWeight = if (selectedTab == 1) FontWeight.Medium else FontWeight.Normal,
                     color = if (selectedTab == 1) Color.White else colors.textSecondary
@@ -439,10 +439,10 @@ fun HistoryDetailScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // 内容区域
+        // Content area
         when (selectedTab) {
             0 -> {
-                // 时间线列表
+                // Timeline list
                 if (record.steps.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -451,7 +451,7 @@ fun HistoryDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "暂无执行步骤",
+                            text = "No execution steps",
                             fontSize = 14.sp,
                             color = colors.textHint
                         )
@@ -468,7 +468,7 @@ fun HistoryDetailScreen(
                 }
             }
             1 -> {
-                // 日志列表
+                // Logs list
                 if (record.logs.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -477,7 +477,7 @@ fun HistoryDetailScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "暂无执行日志",
+                            text = "No execution logs",
                             fontSize = 14.sp,
                             color = colors.textHint
                         )
@@ -517,11 +517,11 @@ fun TimelineItem(
 ) {
     val colors = BaoziTheme.colors
     Row(modifier = Modifier.fillMaxWidth()) {
-        // 时间线指示器
+        // Timeline Indicator
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 圆点
+            // Dot
             Box(
                 modifier = Modifier
                     .size(16.dp)
@@ -530,12 +530,12 @@ fun TimelineItem(
                         when (step.outcome) {
                             "A" -> colors.success
                             "B" -> colors.warning
-                            "?" -> colors.textHint // 进行中被取消
+                            "?" -> colors.textHint // In progress stopped
                             else -> colors.error
                         }
                     )
             )
-            // 连接线
+            // Connecting line
             if (!isLast) {
                 Box(
                     modifier = Modifier
@@ -548,7 +548,7 @@ fun TimelineItem(
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // 步骤内容
+        // Steps Content
         Card(
             modifier = Modifier
                 .fillMaxWidth()

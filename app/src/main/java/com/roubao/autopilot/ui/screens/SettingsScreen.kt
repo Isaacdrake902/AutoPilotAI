@@ -39,7 +39,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.roubao.autopilot.BuildConfig
 import com.roubao.autopilot.data.ApiProvider
 import com.roubao.autopilot.data.AppSettings
@@ -80,7 +79,7 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(colors.background)
     ) {
-        // 顶部标题
+        // Header title
         item {
             Box(
                 modifier = Modifier
@@ -89,13 +88,13 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "设置",
+                        text = "Settings",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.primary
                     )
                     Text(
-                        text = "配置 API 和应用选项",
+                        text = "Configure API and app options",
                         fontSize = 14.sp,
                         color = colors.textSecondary
                     )
@@ -103,52 +102,52 @@ fun SettingsScreen(
             }
         }
 
-        // 连接状态卡片
+        // Connection status card
         item {
             StatusCard(shizukuAvailable = shizukuAvailable)
         }
 
-        // 外观设置分组
+        // Appearance settings group
         item {
-            SettingsSection(title = "外观")
+            SettingsSection(title = "Appearance")
         }
 
-        // 主题模式设置
+        // Theme Mode Settings
         item {
             SettingsItem(
                 icon = if (colors.isDark) Icons.Default.Star else Icons.Outlined.Star,
-                title = "主题模式",
+                title = "Theme Mode",
                 subtitle = when (settings.themeMode) {
-                    ThemeMode.LIGHT -> "浅色模式"
-                    ThemeMode.DARK -> "深色模式"
-                    ThemeMode.SYSTEM -> "跟随系统"
+                    ThemeMode.LIGHT -> "Light Mode"
+                    ThemeMode.DARK -> "Dark Mode"
+                    ThemeMode.SYSTEM -> "Follow System"
                 },
                 onClick = { showThemeDialog = true }
             )
         }
 
-        // 执行设置分组
+        // Execution Settings group
         item {
-            SettingsSection(title = "执行设置")
+            SettingsSection(title = "Execution Settings")
         }
 
-        // 最大步数设置
+        // Max steps settings
         item {
             SettingsItem(
                 icon = Icons.Default.Settings,
-                title = "最大执行步数",
-                subtitle = "${settings.maxSteps} 步",
+                title = "Max Execution Steps",
+                subtitle = "${settings.maxSteps} steps",
                 onClick = { showMaxStepsDialog = true }
             )
         }
 
-        // Shizuku 高级设置分组（仅在 Shizuku 可用时显示）
+        // Shizuku Advanced Settings group (Shown only when Shizuku is available)
         if (shizukuAvailable) {
             item {
-                SettingsSection(title = "Shizuku 高级选项")
+                SettingsSection(title = "Shizuku Advanced Options")
             }
 
-            // 显示当前权限级别
+            // Show Current Permission Level
             item {
                 Card(
                     modifier = Modifier
@@ -188,16 +187,16 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "当前权限级别",
+                                text = "Current Permission Level",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = colors.textPrimary
                             )
                             Text(
                                 text = when (shizukuPrivilegeLevel) {
-                                    "ROOT" -> "Root 模式 (UID 0)"
-                                    "ADB" -> "ADB 模式 (UID 2000)"
-                                    else -> "未连接"
+                                    "ROOT" -> "Root Mode (UID 0)"
+                                    "ADB" -> "ADB Mode (UID 2000)"
+                                    else -> "Not Connected"
                                 },
                                 fontSize = 13.sp,
                                 color = when (shizukuPrivilegeLevel) {
@@ -211,7 +210,7 @@ fun SettingsScreen(
                 }
             }
 
-            // Root 模式开关（仅在 Shizuku 以 Root 权限运行时可用）
+            // Root Mode Toggle (Shown only when Shizuku running with Root permission)
             item {
                 val isShizukuRoot = shizukuPrivilegeLevel == "ROOT"
                 Card(
@@ -247,16 +246,16 @@ fun SettingsScreen(
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Root 模式",
+                                text = "Root Mode",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = if (isShizukuRoot) colors.textPrimary else colors.textHint
                             )
                             Text(
                                 text = when {
-                                    !isShizukuRoot -> "需要 Shizuku 以 Root 权限运行"
-                                    settings.rootModeEnabled -> "已启用高级权限"
-                                    else -> "启用后可使用 Root 功能"
+                                    !isShizukuRoot -> "Requires Shizuku running with Root"
+                                    settings.rootModeEnabled -> "Advanced permissions enabled"
+                                    else -> "Enable to use Root features"
                                 },
                                 fontSize = 13.sp,
                                 color = when {
@@ -292,7 +291,7 @@ fun SettingsScreen(
                 }
             }
 
-            // su -c 开关（仅在 Root 模式开启时显示）
+            // su -c Toggle (Shown only when Root mode enabled)
             if (settings.rootModeEnabled) {
                 item {
                     Card(
@@ -325,13 +324,13 @@ fun SettingsScreen(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = "允许 su -c 命令",
+                                    text = "Allow su -c commands",
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = colors.textPrimary
                                 )
                                 Text(
-                                    text = if (settings.suCommandEnabled) "AI 可执行 Root 命令" else "禁止执行 su -c",
+                                    text = if (settings.suCommandEnabled) "AI can execute Root commands" else "su -c execution disabled",
                                     fontSize = 13.sp,
                                     color = if (settings.suCommandEnabled) colors.error else colors.textSecondary,
                                     maxLines = 1
@@ -359,47 +358,47 @@ fun SettingsScreen(
             }
         }
 
-        // API 设置分组
+        // API Settings group
         item {
-            SettingsSection(title = "API 配置")
+            SettingsSection(title = "API Configuration")
         }
 
-        // Base URL 设置
+        // Base URL Settings
         item {
             SettingsItem(
                 icon = Icons.Default.Settings,
-                title = "API 服务商",
+                title = "API Provider",
                 subtitle = settings.currentProvider.name,
                 onClick = { showBaseUrlDialog = true }
             )
         }
 
-        // API Key 设置
+        // API Key Settings
         item {
             SettingsItem(
                 icon = Icons.Default.Lock,
                 title = "API Key",
-                subtitle = if (settings.apiKey.isNotEmpty()) "已设置 (${maskApiKey(settings.apiKey)})" else "未设置",
+                subtitle = if (settings.apiKey.isNotEmpty()) "Set (${maskApiKey(settings.apiKey)})" else "Not set",
                 onClick = { showApiKeyDialog = true }
             )
         }
 
-        // 模型设置
+        // Model Settings
         item {
             SettingsItem(
                 icon = Icons.Default.Build,
-                title = "模型",
+                title = "Model",
                 subtitle = settings.model,
                 onClick = { showModelDialog = true }
             )
         }
 
-        // 反馈分组
+        // Feedback group
         item {
-            SettingsSection(title = "反馈与调试")
+            SettingsSection(title = "Feedback & Debug")
         }
 
-        // 云端崩溃上报开关
+        // Cloud Crash Reporting Toggle
         item {
             Card(
                 modifier = Modifier
@@ -412,7 +411,7 @@ fun SettingsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
@@ -431,13 +430,13 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "云端崩溃上报",
+                            text = "Cloud Crash Reporting",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.textPrimary
                         )
                         Text(
-                            text = if (settings.cloudCrashReportEnabled) "已开启，帮助我们改进应用" else "已关闭",
+                            text = if (settings.cloudCrashReportEnabled) "Enabled, helps us improve the app" else "Disabled",
                             fontSize = 13.sp,
                             color = colors.textSecondary,
                             maxLines = 1
@@ -463,7 +462,7 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.Info,
-                title = "导出日志",
+                title = "Export Logs",
                 subtitle = logStats.value,
                 onClick = {
                     CrashHandler.shareLogs(context)
@@ -477,8 +476,8 @@ fun SettingsScreen(
 
             SettingsItem(
                 icon = Icons.Default.Close,
-                title = "清除日志",
-                subtitle = "删除所有本地日志文件",
+                title = "Clear Logs",
+                subtitle = "Delete all local log files",
                 onClick = { showClearDialog = true }
             )
 
@@ -486,36 +485,36 @@ fun SettingsScreen(
                 AlertDialog(
                     onDismissRequest = { showClearDialog = false },
                     containerColor = BaoziTheme.colors.backgroundCard,
-                    title = { Text("确认清除", color = BaoziTheme.colors.textPrimary) },
-                    text = { Text("确定要删除所有日志文件吗？", color = BaoziTheme.colors.textSecondary) },
+                    title = { Text("Confirm Clear", color = BaoziTheme.colors.textPrimary) },
+                    text = { Text("Are you sure you want to delete all log files?", color = BaoziTheme.colors.textSecondary) },
                     confirmButton = {
                         TextButton(onClick = {
                             CrashHandler.clearLogs(context)
                             showClearDialog = false
-                            android.widget.Toast.makeText(context, "日志已清除", android.widget.Toast.LENGTH_SHORT).show()
+                            android.widget.Toast.makeText(context, "Logs cleared", android.widget.Toast.LENGTH_SHORT).show()
                         }) {
-                            Text("确定", color = BaoziTheme.colors.error)
+                            Text("Confirm", color = BaoziTheme.colors.error)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showClearDialog = false }) {
-                            Text("取消", color = BaoziTheme.colors.textSecondary)
+                            Text("Cancel", color = BaoziTheme.colors.textSecondary)
                         }
                     }
                 )
             }
         }
 
-        // 帮助分组
+        // Help group
         item {
-            SettingsSection(title = "帮助")
+            SettingsSection(title = "Help")
         }
 
         item {
             SettingsItem(
                 icon = Icons.Default.Info,
-                title = "Shizuku 使用指南",
-                subtitle = "了解如何安装和配置 Shizuku",
+                title = "Shizuku User Guide",
+                subtitle = "Learn how to install and configure Shizuku",
                 onClick = { showShizukuHelpDialog = true }
             )
         }
@@ -523,21 +522,21 @@ fun SettingsScreen(
         item {
             SettingsItem(
                 icon = Icons.Default.Settings,
-                title = "悬浮窗权限说明",
-                subtitle = "了解为什么需要悬浮窗权限",
+                title = "Overlay Permission Info",
+                subtitle = "Learn why overlay permission is needed",
                 onClick = { showOverlayHelpDialog = true }
             )
         }
 
-        // 关于分组
+        // About group
         item {
-            SettingsSection(title = "关于")
+            SettingsSection(title = "About")
         }
 
         item {
             SettingsItem(
                 icon = Icons.Default.Info,
-                title = "版本",
+                title = "Version",
                 subtitle = BuildConfig.VERSION_NAME,
                 onClick = { }
             )
@@ -546,19 +545,19 @@ fun SettingsScreen(
         item {
             SettingsItem(
                 icon = Icons.Default.Build,
-                title = "肉包 Autopilot",
-                subtitle = "基于视觉语言模型的 Android 自动化工具",
+                title = "Baozi Autopilot",
+                subtitle = "VLM-based Android automation tool",
                 onClick = { }
             )
         }
 
-        // 底部间距
+        // Bottom spacing
         item {
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
 
-    // 主题选择对话框
+    // Theme select dialog
     if (showThemeDialog) {
         ThemeSelectDialog(
             currentTheme = settings.themeMode,
@@ -570,7 +569,7 @@ fun SettingsScreen(
         )
     }
 
-    // 最大步数设置对话框
+    // Max steps settings dialog
     if (showMaxStepsDialog) {
         MaxStepsDialog(
             currentSteps = settings.maxSteps,
@@ -582,7 +581,7 @@ fun SettingsScreen(
         )
     }
 
-    // API Key 编辑对话框
+    // API Key Edit dialog
     if (showApiKeyDialog) {
         ApiKeyDialog(
             currentKey = settings.apiKey,
@@ -594,7 +593,7 @@ fun SettingsScreen(
         )
     }
 
-    // 模型选择对话框（合并了自定义输入和从 API 获取）
+    // Model Select dialog (Combined custom input and API fetch)
     if (showModelDialog) {
         ModelSelectDialogWithFetch(
             currentModel = settings.model,
@@ -610,7 +609,7 @@ fun SettingsScreen(
         )
     }
 
-    // 服务商选择对话框
+    // Provider select dialog
     if (showBaseUrlDialog) {
         ProviderSelectDialog(
             currentProviderId = settings.currentProviderId,
@@ -626,17 +625,17 @@ fun SettingsScreen(
         )
     }
 
-    // Shizuku 帮助对话框
+    // Shizuku help dialog
     if (showShizukuHelpDialog) {
         ShizukuHelpDialog(onDismiss = { showShizukuHelpDialog = false })
     }
 
-    // 悬浮窗权限帮助对话框
+    // Overlay permission help dialog
     if (showOverlayHelpDialog) {
         OverlayHelpDialog(onDismiss = { showOverlayHelpDialog = false })
     }
 
-    // Root 模式警告对话框
+    // Root Mode warning dialog
     if (showRootModeWarningDialog) {
         RootModeWarningDialog(
             onDismiss = { showRootModeWarningDialog = false },
@@ -647,7 +646,7 @@ fun SettingsScreen(
         )
     }
 
-    // su -c 命令警告对话框
+    // su -c command warning dialog
     if (showSuCommandWarningDialog) {
         SuCommandWarningDialog(
             onDismiss = { showSuCommandWarningDialog = false },
@@ -686,13 +685,13 @@ fun StatusCard(shizukuAvailable: Boolean) {
             Spacer(modifier = Modifier.width(16.dp))
             Column {
                 Text(
-                    text = if (shizukuAvailable) "Shizuku 已连接" else "Shizuku 未连接",
+                    text = if (shizukuAvailable) "Shizuku Connected" else "Shizuku Not Connected",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (shizukuAvailable) colors.success else colors.error
                 )
                 Text(
-                    text = if (shizukuAvailable) "设备控制功能可用" else "请启动 Shizuku 并授权",
+                    text = if (shizukuAvailable) "Device control available" else "Please start Shizuku and grant permission",
                     fontSize = 13.sp,
                     color = colors.textSecondary
                 )
@@ -792,14 +791,14 @@ fun ThemeSelectDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("选择主题", color = colors.textPrimary)
+            Text("Select Theme", color = colors.textPrimary)
         },
         text = {
             Column {
                 listOf(
-                    ThemeMode.LIGHT to "浅色模式",
-                    ThemeMode.DARK to "深色模式",
-                    ThemeMode.SYSTEM to "跟随系统"
+                    ThemeMode.LIGHT to "Light Mode",
+                    ThemeMode.DARK to "Dark Mode",
+                    ThemeMode.SYSTEM to "Follow System"
                 ).forEach { (mode, label) ->
                     val isSelected = mode == currentTheme
                     Surface(
@@ -841,7 +840,7 @@ fun ThemeSelectDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("关闭", color = colors.textSecondary)
+                Text("Close", color = colors.textSecondary)
             }
         }
     )
@@ -866,7 +865,7 @@ fun ApiKeyDialog(
         text = {
             Column {
                 Text(
-                    text = "请输入您的 API Key",
+                    text = "Please enter your API Key",
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(bottom = 16.dp)
@@ -896,7 +895,7 @@ fun ApiKeyDialog(
                         )
                         TextButton(onClick = { showKey = !showKey }) {
                             Text(
-                                text = if (showKey) "隐藏" else "显示",
+                                text = if (showKey) "Hide" else "Show",
                                 fontSize = 12.sp,
                                 color = colors.textHint
                             )
@@ -907,12 +906,12 @@ fun ApiKeyDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(key) }) {
-                Text("确定", color = colors.primary)
+                Text("Confirm", color = colors.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = colors.textSecondary)
+                Text("Cancel", color = colors.textSecondary)
             }
         }
     )
@@ -920,7 +919,7 @@ fun ApiKeyDialog(
 
 
 /**
- * 模型选择对话框（合并了自定义输入和从 API 获取）
+ * Model Select dialog (Combined custom input and API fetch)
  */
 @Composable
 fun ModelSelectDialogWithFetch(
@@ -938,10 +937,10 @@ fun ModelSelectDialogWithFetch(
     var searchQuery by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
 
-    // 默认推荐模型
+    // Default recommended Model
     val defaultModel = "qwen3-vl-plus"
 
-    // 过滤后的模型列表
+    // Filtered Model list
     val filteredModels = remember(cachedModels, searchQuery) {
         if (searchQuery.isBlank()) {
             cachedModels
@@ -954,15 +953,15 @@ fun ModelSelectDialogWithFetch(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("选择模型", color = colors.textPrimary)
+            Text("Select Model", color = colors.textPrimary)
         },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
-                // 默认推荐模型
+                // Default recommended Model
                 Text(
-                    text = "推荐模型",
+                    text = "Recommended Models",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.textHint,
@@ -1004,7 +1003,7 @@ fun ModelSelectDialogWithFetch(
                                 color = if (isDefaultSelected) colors.primary else colors.textPrimary
                             )
                             Text(
-                                text = "阿里云通义千问视觉模型",
+                                text = "Alibaba Qwen Vision Model",
                                 fontSize = 11.sp,
                                 color = colors.textHint
                             )
@@ -1014,9 +1013,9 @@ fun ModelSelectDialogWithFetch(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 自定义模型输入
+                // Custom Model Input
                 Text(
-                    text = "自定义模型",
+                    text = "Custom Model",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.textHint,
@@ -1036,7 +1035,7 @@ fun ModelSelectDialogWithFetch(
                     ) {
                         if (customModel.isEmpty()) {
                             Text(
-                                text = "输入模型名称，如 gpt-4o",
+                                text = "Enter model name e.g. gpt-4o",
                                 color = colors.textHint,
                                 fontSize = 14.sp
                             )
@@ -1056,7 +1055,7 @@ fun ModelSelectDialogWithFetch(
 
                     Spacer(modifier = Modifier.width(8.dp))
 
-                    // 确认按钮
+                    // Confirm button
                     Surface(
                         modifier = Modifier
                             .size(44.dp)
@@ -1069,7 +1068,7 @@ fun ModelSelectDialogWithFetch(
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
-                                contentDescription = "确认",
+                                contentDescription = "Confirm",
                                 tint = if (customModel.isNotBlank()) Color.White else colors.textHint,
                                 modifier = Modifier.size(22.dp)
                             )
@@ -1079,12 +1078,12 @@ fun ModelSelectDialogWithFetch(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // 从 API 获取模型 - 更明显的按钮
+                // Fetch from API Button
                 if (onFetchModels != null) {
                     Button(
                         onClick = {
                             if (!hasApiKey) {
-                                android.widget.Toast.makeText(context, "请先设置 API Key", android.widget.Toast.LENGTH_SHORT).show()
+                                android.widget.Toast.makeText(context, "Please set API Key", android.widget.Toast.LENGTH_SHORT).show()
                                 return@Button
                             }
                             isLoading = true
@@ -1092,11 +1091,11 @@ fun ModelSelectDialogWithFetch(
                                 { models ->
                                     isLoading = false
                                     onUpdateCachedModels(models)
-                                    android.widget.Toast.makeText(context, "获取到 ${models.size} 个模型", android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Fetched ${models.size} models", android.widget.Toast.LENGTH_SHORT).show()
                                 },
                                 { error ->
                                     isLoading = false
-                                    android.widget.Toast.makeText(context, "获取失败: $error", android.widget.Toast.LENGTH_SHORT).show()
+                                    android.widget.Toast.makeText(context, "Fetch failed: $error", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             )
                         },
@@ -1115,7 +1114,7 @@ fun ModelSelectDialogWithFetch(
                                 color = Color.White
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("获取中...", fontSize = 14.sp, color = Color.White)
+                            Text("Fetching...", fontSize = 14.sp, color = Color.White)
                         } else {
                             Icon(
                                 imageVector = Icons.Default.Add,
@@ -1125,7 +1124,7 @@ fun ModelSelectDialogWithFetch(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                "从 API 获取可用模型",
+                                "Fetch available models from API",
                                 fontSize = 14.sp,
                                 color = if (hasApiKey) Color.White else colors.textHint
                             )
@@ -1136,7 +1135,7 @@ fun ModelSelectDialogWithFetch(
                         Spacer(modifier = Modifier.height(12.dp))
 
                         Text(
-                            text = "API 模型列表 (${cachedModels.size})",
+                            text = "API Model list (${cachedModels.size})",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.textHint,
@@ -1146,7 +1145,7 @@ fun ModelSelectDialogWithFetch(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    // 搜索框（模型数量超过 10 个时显示）
+                    // Search box (Shown when models exceed 10 items)
                     if (cachedModels.size > 10) {
                         Box(
                             modifier = Modifier
@@ -1168,7 +1167,7 @@ fun ModelSelectDialogWithFetch(
                                 Box(modifier = Modifier.weight(1f)) {
                                     if (searchQuery.isEmpty()) {
                                         Text(
-                                            text = "搜索模型...",
+                                            text = "Search models...",
                                             color = colors.textHint,
                                             fontSize = 14.sp
                                         )
@@ -1188,7 +1187,7 @@ fun ModelSelectDialogWithFetch(
                                 if (searchQuery.isNotEmpty()) {
                                     Icon(
                                         imageVector = Icons.Default.Close,
-                                        contentDescription = "清除",
+                                        contentDescription = "Clear",
                                         tint = colors.textHint,
                                         modifier = Modifier
                                             .size(18.dp)
@@ -1201,7 +1200,7 @@ fun ModelSelectDialogWithFetch(
                     }
                 }
 
-                // 模型列表
+                // Model list
                 if (cachedModels.isEmpty()) {
                     Box(
                         modifier = Modifier
@@ -1210,7 +1209,7 @@ fun ModelSelectDialogWithFetch(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = if (hasApiKey) "点击「从 API 获取」加载模型列表" else "请先设置 API Key",
+                            text = if (hasApiKey) "Click 'Fetch from API' to load models" else "Please set API Key",
                             fontSize = 13.sp,
                             color = colors.textHint
                         )
@@ -1223,16 +1222,16 @@ fun ModelSelectDialogWithFetch(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "没有匹配「$searchQuery」的模型",
+                            text = "No match for '$searchQuery'",
                             fontSize = 13.sp,
                             color = colors.textHint
                         )
                     }
                 } else {
-                    // 显示过滤结果数量
+                    // Show filtered results count
                     if (searchQuery.isNotBlank()) {
                         Text(
-                            text = "找到 ${filteredModels.size} 个模型",
+                            text = "Found ${filteredModels.size} models",
                             fontSize = 11.sp,
                             color = colors.textHint,
                             modifier = Modifier.padding(bottom = 4.dp)
@@ -1280,7 +1279,7 @@ fun ModelSelectDialogWithFetch(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("关闭", color = colors.textSecondary)
+                Text("Close", color = colors.textSecondary)
             }
         }
     )
@@ -1303,7 +1302,7 @@ fun ShizukuHelpDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("Shizuku 使用指南", color = colors.textPrimary)
+            Text("Shizuku User Guide", color = colors.textPrimary)
         },
         text = {
             Column(
@@ -1311,16 +1310,16 @@ fun ShizukuHelpDialog(onDismiss: () -> Unit) {
             ) {
                 HelpStep(
                     number = "1",
-                    title = "下载 Shizuku",
-                    description = "从 Google Play 或 GitHub 下载 Shizuku 应用"
+                    title = "Download Shizuku",
+                    description = "Download Shizuku from Google Play or GitHub"
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                // 下载按钮
+                // Download button
                 Button(
                     onClick = {
                         val intent = android.content.Intent(
                             android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse("https://github.com/RikkaApps/Shizuku/releases")
+                            android.net.Uri.parse("https://github.com/Rikkaapp/Shizuku/releases")
                         )
                         context.startActivity(intent)
                     },
@@ -1329,31 +1328,31 @@ fun ShizukuHelpDialog(onDismiss: () -> Unit) {
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("前往下载 Shizuku", color = Color.White)
+                    Text("Go to download Shizuku", color = Color.White)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 HelpStep(
                     number = "2",
-                    title = "启动 Shizuku",
-                    description = "打开 Shizuku 应用，根据您的设备选择启动方式：\n\n• 无线调试（推荐）：需要 Android 11+，在开发者选项中开启无线调试\n• 连接电脑：通过 ADB 命令启动"
+                    title = "Start Shizuku",
+                    description = "Open Shizuku app. Choose start method:\n\n• Wireless debugging (Recommended): Requires Android 11+. Enable wireless debugging in Developer Options.\n• Connect to computer: Start via ADB command"
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 HelpStep(
                     number = "3",
-                    title = "授权肉包",
-                    description = "在 Shizuku 的「应用管理」中找到「肉包」，点击授权按钮"
+                    title = "Authorize Baozi",
+                    description = "In Shizuku app management, find 'Baozi' and click Authorize."
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 HelpStep(
                     number = "4",
-                    title = "开始使用",
-                    description = "授权完成后，返回肉包应用，即可开始使用"
+                    title = "Start using",
+                    description = "After authorization, return to Baozi app to start using."
                 )
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("知道了", color = colors.primary)
+                Text("Got it", color = colors.primary)
             }
         }
     )
@@ -1366,39 +1365,39 @@ fun OverlayHelpDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("悬浮窗权限说明", color = colors.textPrimary)
+            Text("Overlay Permission Info", color = colors.textPrimary)
         },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "为什么需要悬浮窗权限？",
+                    text = "Why is overlay permission needed?",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "肉包在执行任务时需要显示悬浮窗来：",
+                    text = "Baozi needs overlay during task execution to:",
                     fontSize = 14.sp,
                     color = colors.textPrimary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                BulletPoint("显示当前执行进度")
-                BulletPoint("提供停止按钮，随时中断任务")
-                BulletPoint("在其他应用上方显示状态信息")
+                BulletPoint("Show current execution progress")
+                BulletPoint("Provide stop button to interrupt anytime")
+                BulletPoint("Display status info above other apps")
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "如何开启？",
+                    text = "How to enable?",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "1. 点击执行任务时会自动提示\n2. 或前往：设置 > 应用 > 肉包 > 悬浮窗权限\n3. 开启「允许显示在其他应用上层」",
+                    text = "1. Will auto-prompt when executing tasks\n2. Or go to Settings > Apps > Baozi > Overlay permission\n3. Enable Display over other apps",
                     fontSize = 14.sp,
                     color = colors.textPrimary,
                     lineHeight = 22.sp
@@ -1406,14 +1405,14 @@ fun OverlayHelpDialog(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "隐私安全",
+                    text = "Privacy & Security",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.primary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "悬浮窗仅在任务执行期间显示，不会收集任何个人信息。任务完成后悬浮窗会自动消失。",
+                    text = "Overlay is only shown during task execution. It does not collect personal info. Overlay disappears after task completes.",
                     fontSize = 14.sp,
                     color = colors.textSecondary
                 )
@@ -1421,7 +1420,7 @@ fun OverlayHelpDialog(onDismiss: () -> Unit) {
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("知道了", color = colors.primary)
+                Text("Got it", color = colors.primary)
             }
         }
     )
@@ -1501,20 +1500,20 @@ fun MaxStepsDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("最大执行步数", color = colors.textPrimary)
+            Text("Max Execution Steps", color = colors.textPrimary)
         },
         text = {
             Column {
                 Text(
-                    text = "设置 Agent 单次任务的最大执行步数。步数越多，能完成的任务越复杂，但消耗的 token 也越多。",
+                    text = "Configure max steps per task. More steps allow more complex tasks but consumes more tokens.",
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 当前值显示
+                // Current value display
                 Text(
-                    text = "${steps.toInt()} 步",
+                    text = "${steps.toInt()} steps",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.primary,
@@ -1524,12 +1523,12 @@ fun MaxStepsDialog(
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
 
-                // 滑块
+                // Slider
                 Slider(
                     value = steps,
                     onValueChange = { steps = it },
                     valueRange = 5f..100f,
-                    steps = 18, // (100-5)/5 - 1 = 18 个刻度点，每 5 步一个
+                    steps = 18, // (100-5)/5 - 1 = 18 tick marks each step
                     colors = SliderDefaults.colors(
                         thumbColor = colors.primary,
                         activeTrackColor = colors.primary,
@@ -1538,7 +1537,7 @@ fun MaxStepsDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                // 范围提示
+                // Range hint
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -1557,7 +1556,7 @@ fun MaxStepsDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // 快捷选项
+                // Quick options
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -1584,19 +1583,19 @@ fun MaxStepsDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(steps.toInt()) }) {
-                Text("确定", color = colors.primary)
+                Text("Confirm", color = colors.primary)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = colors.textSecondary)
+                Text("Cancel", color = colors.textSecondary)
             }
         }
     )
 }
 
 /**
- * 服务商选择对话框
+ * Provider select dialog
  */
 @Composable
 fun ProviderSelectDialog(
@@ -1614,20 +1613,20 @@ fun ProviderSelectDialog(
         onDismissRequest = onDismiss,
         containerColor = colors.backgroundCard,
         title = {
-            Text("API 服务商", color = colors.textPrimary)
+            Text("API Provider", color = colors.textPrimary)
         },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
                 Text(
-                    text = "选择 API 服务商（支持 OpenAI 兼容接口）",
+                    text = "Select API Provider (OpenAI compatible)",
                     fontSize = 14.sp,
                     color = colors.textSecondary,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // 服务商列表
+                // Provider list
                 ApiProvider.ALL.forEach { provider ->
                     val isSelected = provider.id == selectedProviderId
                     Surface(
@@ -1668,7 +1667,7 @@ fun ProviderSelectDialog(
                                     color = if (isSelected) colors.primary else colors.textPrimary
                                 )
                             }
-                            // 对于非自定义服务商，显示其 URL
+                            // For non-Custom providers Show their URL
                             if (provider.id != "custom") {
                                 Text(
                                     text = provider.baseUrl,
@@ -1680,7 +1679,7 @@ fun ProviderSelectDialog(
                         }
                     }
 
-                    // 自定义服务商选中时显示 URL 输入框
+                    // Show URL Input box when Custom provider is selected
                     if (provider.id == "custom" && isSelected) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Box(
@@ -1714,7 +1713,7 @@ fun ProviderSelectDialog(
                             )
                         }
                         Text(
-                            text = "输入自定义 API 端点地址",
+                            text = "Enter custom API endpoint URL",
                             fontSize = 11.sp,
                             color = colors.textHint,
                             modifier = Modifier.padding(start = 28.dp, top = 4.dp)
@@ -1725,14 +1724,14 @@ fun ProviderSelectDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("完成", color = colors.primary)
+                Text("Done", color = colors.primary)
             }
         }
     )
 }
 
 /**
- * Root 模式警告对话框
+ * Root Mode warning dialog
  */
 @Composable
 fun RootModeWarningDialog(
@@ -1753,7 +1752,7 @@ fun RootModeWarningDialog(
         },
         title = {
             Text(
-                "启用 Root 模式",
+                "Enable Root Mode",
                 color = colors.error,
                 fontWeight = FontWeight.Bold
             )
@@ -1761,24 +1760,24 @@ fun RootModeWarningDialog(
         text = {
             Column {
                 Text(
-                    text = "Root 模式将允许应用使用更高级的系统权限。",
+                    text = "Root Mode will allow the app to use higher system privileges.",
                     fontSize = 14.sp,
                     color = colors.textPrimary,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 Text(
-                    text = "警告：",
+                    text = "Warning:",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                BulletPoint("Root 权限可能导致系统不稳定")
-                BulletPoint("不当操作可能损坏设备数据")
-                BulletPoint("请确保您了解 Root 权限的风险")
+                BulletPoint("Root permission may cause system instability")
+                BulletPoint("Improper operations may damage device data")
+                BulletPoint("Please ensure you understand the risks of Root permission")
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "仅在您完全了解风险并需要高级功能时才启用此选项。",
+                    text = "Only enable when you fully understand the risks and need advanced features.",
                     fontSize = 13.sp,
                     color = colors.textSecondary
                 )
@@ -1789,19 +1788,19 @@ fun RootModeWarningDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = colors.error)
             ) {
-                Text("我了解风险，启用", color = Color.White)
+                Text("I understand the risks, Enable", color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = colors.textSecondary)
+                Text("Cancel", color = colors.textSecondary)
             }
         }
     )
 }
 
 /**
- * su -c 命令警告对话框
+ * su -c command warning dialog
  */
 @Composable
 fun SuCommandWarningDialog(
@@ -1822,7 +1821,7 @@ fun SuCommandWarningDialog(
         },
         title = {
             Text(
-                "允许 su -c 命令",
+                "Allow su -c commands",
                 color = colors.error,
                 fontWeight = FontWeight.Bold
             )
@@ -1830,25 +1829,25 @@ fun SuCommandWarningDialog(
         text = {
             Column {
                 Text(
-                    text = "此选项将允许 AI 执行 su -c 命令，这意味着 AI 可以以 Root 权限执行任意 Shell 命令。",
+                    text = "This option allows AI to execute su -c commands with full Root privileges.",
                     fontSize = 14.sp,
                     color = colors.textPrimary,
                     modifier = Modifier.padding(bottom = 12.dp)
                 )
                 Text(
-                    text = "极度危险：",
+                    text = "Extremely dangerous:",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.error
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                BulletPoint("AI 可能执行危险的系统命令")
-                BulletPoint("可能导致数据丢失或系统损坏")
-                BulletPoint("可能被恶意指令利用")
-                BulletPoint("不建议在日常使用中启用")
+                BulletPoint("AI may execute dangerous system commands")
+                BulletPoint("May cause data loss or system damage")
+                BulletPoint("May be exploited by malicious instructions")
+                BulletPoint("Not recommended for daily use")
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "强烈建议：仅在完全可控的测试环境中使用，并在使用完毕后立即关闭。",
+                    text = "Strongly Recommended: Use only in a fully controlled test environment and disable immediately after use.",
                     fontSize = 13.sp,
                     color = colors.error,
                     fontWeight = FontWeight.Medium
@@ -1860,12 +1859,12 @@ fun SuCommandWarningDialog(
                 onClick = onConfirm,
                 colors = ButtonDefaults.buttonColors(containerColor = colors.error)
             ) {
-                Text("我了解风险，启用", color = Color.White)
+                Text("I understand the risks, Enable", color = Color.White)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("取消", color = colors.textSecondary)
+                Text("Cancel", color = colors.textSecondary)
             }
         }
     )

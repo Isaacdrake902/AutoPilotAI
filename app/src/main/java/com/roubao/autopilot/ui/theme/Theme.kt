@@ -15,29 +15,30 @@ val Secondary = Color(0xFFEFB773)
 val SecondaryDark = Color(0xFFD69B52)
 val SecondaryLight = Color(0xFFF5CB94)
 
-// 深色主题背景色
+// Dark theme background colors
 val BackgroundDark = Color(0xFF1A1A1A)
 val BackgroundCard = Color(0xFF252525)
 val BackgroundInput = Color(0xFF2A2A2A)
 val SurfaceVariant = Color(0xFF303030)
 
-// 深色主题文字颜色
+// Dark theme text colors
 val TextPrimary = Color(0xFFFFFFFF)
 val TextSecondary = Color(0xFFB0B0B0)
 val TextHint = Color(0xFF666666)
 
-// 浅色主题背景色 - 纯白简洁风格
+// Light theme background colors - Clean white style
 val BackgroundLight = Color(0xFFFFFFFF)
 val BackgroundCardLight = Color(0xFFF5F5F5)
 val BackgroundInputLight = Color(0xFFEEEEEE)
 val SurfaceVariantLight = Color(0xFFE0E0E0)
+
 
 // 浅色主题文字颜色
 val TextPrimaryLight = Color(0xFF212121)
 val TextSecondaryLight = Color(0xFF757575)
 val TextHintLight = Color(0xFFBDBDBD)
 
-// 状态颜色
+// Status颜色
 val Success = Color(0xFF4CAF50)
 val Error = Color(0xFFF44336)
 val Warning = Color(0xFFFF9800)
@@ -61,7 +62,7 @@ data class BaoziColors(
     val isDark: Boolean
 )
 
-// 深色主题颜色
+// Dark theme colors
 val DarkBaoziColors = BaoziColors(
     primary = Primary,
     primaryDark = PrimaryDark,
@@ -80,7 +81,7 @@ val DarkBaoziColors = BaoziColors(
     isDark = true
 )
 
-// 浅色主题颜色
+// Light theme colors
 val LightBaoziColors = BaoziColors(
     primary = Primary,
     primaryDark = PrimaryDark,
@@ -99,10 +100,10 @@ val LightBaoziColors = BaoziColors(
     isDark = false
 )
 
-// CompositionLocal 用于访问当前主题颜色
+// CompositionLocal for访问当前主题颜色
 val LocalBaoziColors = staticCompositionLocalOf { DarkBaoziColors }
 
-// Material 3 深色配色方案
+// Material 3 Dark Color Scheme
 private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = Color.White,
@@ -122,7 +123,7 @@ private val DarkColorScheme = darkColorScheme(
     onError = Color.White
 )
 
-// Material 3 浅色配色方案
+// Material 3 Light Color Scheme
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = Color.White,
@@ -142,7 +143,7 @@ private val LightColorScheme = lightColorScheme(
     onError = Color.White
 )
 
-// 主题模式枚举
+// Theme Mode枚举
 enum class ThemeMode {
     LIGHT,
     DARK,

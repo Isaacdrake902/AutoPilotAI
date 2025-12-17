@@ -38,7 +38,7 @@ data class ApiProvider(
         )
         val CUSTOM = ApiProvider(
             id = "custom",
-            name = "自定义",
+            name = "Custom",
             baseUrl = "",
             defaultModel = ""
         )
@@ -48,7 +48,7 @@ data class ApiProvider(
 }
 
 /**
- * 服务商配置（每个服务商独立保存）
+ * 服务商配置（每items服务商独立Save）
  */
 data class ProviderConfig(
     val apiKey: String = "",
@@ -58,16 +58,16 @@ data class ProviderConfig(
 )
 
 /**
- * 默认推荐模型
+ * Default recommendedModel
  */
 const val DEFAULT_MODEL = "qwen3-vl-plus"
 
 /**
- * 应用设置
+ * appSettings
  */
 data class AppSettings(
     val currentProviderId: String = ApiProvider.ALIYUN.id,  // 当前选中的服务商
-    val providerConfigs: Map<String, ProviderConfig> = emptyMap(),  // 每个服务商的配置
+    val providerConfigs: Map<String, ProviderConfig> = emptyMap(),  // 每items服务商的配置
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val hasSeenOnboarding: Boolean = false,
     val maxSteps: Int = 25,
@@ -75,7 +75,7 @@ data class AppSettings(
     val rootModeEnabled: Boolean = false,
     val suCommandEnabled: Boolean = false
 ) {
-    // 便捷属性：获取当前服务商的配置
+    // 便捷属性:获取当前服务商的配置
     val currentConfig: ProviderConfig
         get() = providerConfigs[currentProviderId] ?: ProviderConfig()
 
@@ -95,15 +95,15 @@ data class AppSettings(
 }
 
 /**
- * 设置管理器
+ * Settings管理器
  */
 class SettingsManager(context: Context) {
 
-    // 普通设置存储
+    // 普通Settings存储
     private val prefs: SharedPreferences =
         context.getSharedPreferences("baozi_settings", Context.MODE_PRIVATE)
 
-    // 加密存储（用于敏感数据如 API Key）
+    // 加密存储（for敏感数据e.g. API Key）
     private val securePrefs: SharedPreferences by lazy {
         try {
             val masterKey = MasterKey.Builder(context)
@@ -118,7 +118,7 @@ class SettingsManager(context: Context) {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            // 加密失败时回退到普通存储（不应该发生）
+            // 加密Failed时回退到普通存储（不应该发生）
             android.util.Log.e("SettingsManager", "Failed to create encrypted prefs", e)
             prefs
         }
@@ -138,9 +138,9 @@ class SettingsManager(context: Context) {
     private fun migrateApiKeyToSecureStorage() {
         val oldApiKey = prefs.getString("api_key", null)
         if (!oldApiKey.isNullOrEmpty()) {
-            // 保存到加密存储
+            // Save到加密存储
             securePrefs.edit().putString("api_key", oldApiKey).apply()
-            // 删除旧的明文存储
+            // Delete旧的明文存储
             prefs.edit().remove("api_key").apply()
             android.util.Log.d("SettingsManager", "API Key migrated to secure storage")
         }
@@ -157,21 +157,21 @@ class SettingsManager(context: Context) {
         // 加载当前选中的服务商
         val currentProviderId = prefs.getString("current_provider_id", ApiProvider.ALIYUN.id) ?: ApiProvider.ALIYUN.id
 
-        // 加载每个服务商的配置
+        // 加载每items服务商的配置
         val providerConfigs = mutableMapOf<String, ProviderConfig>()
         for (provider in ApiProvider.ALL) {
             val config = loadProviderConfig(provider.id)
             providerConfigs[provider.id] = config
         }
 
-        // 迁移旧数据（如果有）
+        // 迁移旧数据（e.g.果有）
         val oldApiKey = securePrefs.getString("api_key", null)
         val oldModel = prefs.getString("model", null)
         val oldBaseUrl = prefs.getString("base_url", null)
         val oldCachedModels = prefs.getStringSet("cached_models", null)
 
         if (oldApiKey != null || oldModel != null) {
-            // 找到旧数据对应的服务商
+            // find旧数据对应的服务商
             val oldProviderId = when (oldBaseUrl) {
                 ApiProvider.ALIYUN.baseUrl -> ApiProvider.ALIYUN.id
                 ApiProvider.OPENAI.baseUrl -> ApiProvider.OPENAI.id
@@ -189,7 +189,7 @@ class SettingsManager(context: Context) {
             providerConfigs[oldProviderId] = migratedConfig
             saveProviderConfig(oldProviderId, migratedConfig)
 
-            // 清除旧数据
+            // Clear旧数据
             securePrefs.edit().remove("api_key").apply()
             prefs.edit()
                 .remove("model")
@@ -227,7 +227,7 @@ class SettingsManager(context: Context) {
     }
 
     /**
-     * 保存指定服务商的配置
+     * Save指定服务商的配置
      */
     private fun saveProviderConfig(providerId: String, config: ProviderConfig) {
         val prefix = "provider_${providerId}_"
@@ -259,7 +259,7 @@ class SettingsManager(context: Context) {
     }
 
     fun updateBaseUrl(baseUrl: String) {
-        // 只有自定义服务商才能修改 URL
+        // 只有Custom服务商才能修改 URL
         if (_settings.value.currentProviderId == "custom") {
             updateCurrentConfig { it.copy(customBaseUrl = baseUrl) }
         }
@@ -270,7 +270,7 @@ class SettingsManager(context: Context) {
     }
 
     /**
-     * 更新缓存的模型列表（从 API 获取后调用）
+     * 更新缓存models list（从 API 获取后调用）
      */
     fun updateCachedModels(models: List<String>) {
         val distinctModels = models.distinct()
@@ -278,14 +278,14 @@ class SettingsManager(context: Context) {
     }
 
     /**
-     * 清空缓存的模型列表
+     * 清空缓存models list
      */
     fun clearCachedModels() {
         updateCurrentConfig { it.copy(cachedModels = emptyList()) }
     }
 
     /**
-     * 选择服务商（切换时自动加载该服务商的配置）
+     * Select Provider（切换时自动加载该服务商的配置）
      */
     fun selectProvider(provider: ApiProvider) {
         prefs.edit().putString("current_provider_id", provider.id).apply()
@@ -300,7 +300,7 @@ class SettingsManager(context: Context) {
     }
 
     /**
-     * 判断是否使用自定义 URL
+     * 判断是否使用Custom URL
      */
     fun isCustomUrl(): Boolean {
         return _settings.value.currentProviderId == "custom"
@@ -330,7 +330,7 @@ class SettingsManager(context: Context) {
     fun updateRootModeEnabled(enabled: Boolean) {
         prefs.edit().putBoolean("root_mode_enabled", enabled).apply()
         _settings.value = _settings.value.copy(rootModeEnabled = enabled)
-        // 关闭 Root 模式时，同时关闭 su -c
+        // Close Root Mode时 同时Close su -c
         if (!enabled) {
             updateSuCommandEnabled(false)
         }

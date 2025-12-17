@@ -4,11 +4,11 @@ import com.roubao.autopilot.controller.AppScanner
 import com.roubao.autopilot.controller.DeviceController
 
 /**
- * 打开应用工具
+ * Openapp工具
  *
- * 支持：
- * - 通过包名打开
- * - 通过应用名打开（自动搜索包名）
+ * 支持:
+ * - 通过包名Open
+ * - 通过app名Open（自动Search包名）
  */
 class OpenAppTool(
     private val deviceController: DeviceController,
@@ -16,14 +16,14 @@ class OpenAppTool(
 ) : Tool {
 
     override val name = "open_app"
-    override val displayName = "打开应用"
-    override val description = "打开指定的应用程序"
+    override val displayName = "Openapp"
+    override val description = "Open指定的app程序"
 
     override val params = listOf(
         ToolParam(
             name = "app",
             type = "string",
-            description = "应用名称或包名（如：微信、com.tencent.mm）",
+            description = "app名称或包名（e.g.:微信、com.tencent.mm）",
             required = true
         )
     )
@@ -32,25 +32,25 @@ class OpenAppTool(
         val app = params["app"] as? String
             ?: return ToolResult.Error("缺少 app 参数")
 
-        // 判断是包名还是应用名
+        // 判断是包名还是app名
         val packageName = if (app.contains(".")) {
             // 已经是包名格式
             app
         } else {
-            // 需要搜索包名
+            // RequiresSearch包名
             val results = appScanner.searchApps(app, topK = 1)
             results.firstOrNull()?.app?.packageName
-                ?: return ToolResult.Error("未找到应用: $app")
+                ?: return ToolResult.Error("App not found: $app")
         }
 
         return try {
             deviceController.openApp(packageName)
             ToolResult.Success(
                 data = mapOf("package_name" to packageName),
-                message = "已打开应用: $app"
+                message = "已Openapp: $app"
             )
         } catch (e: Exception) {
-            ToolResult.Error("打开应用失败: ${e.message}")
+            ToolResult.Error("OpenappFailed: ${e.message}")
         }
     }
 }

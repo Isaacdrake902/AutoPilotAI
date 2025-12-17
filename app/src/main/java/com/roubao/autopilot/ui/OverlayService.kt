@@ -24,8 +24,8 @@ import com.roubao.autopilot.MainActivity
 import com.roubao.autopilot.R
 
 /**
- * 七彩悬浮窗服务 - 显示当前执行步骤
- * 放在屏幕顶部状态栏下方，不影响截图识别
+ * 七彩悬浮窗服务 - Show当前执行steps
+ * 放在屏幕顶部Status栏下方 不影响截图识别
  */
 class OverlayService : Service() {
 
@@ -33,20 +33,20 @@ class OverlayService : Service() {
     private var overlayView: View? = null
     private var textView: TextView? = null
     private var actionButton: TextView? = null
-    private var cancelButton: TextView? = null  // 确认模式下的取消按钮
+    private var cancelButton: TextView? = null  // ConfirmMode下的Cancel按钮
     private var divider: View? = null
-    private var divider2: View? = null  // 确认模式下第二个分隔线
+    private var divider2: View? = null  // ConfirmMode下第二itemsm隔线
     private var animator: ValueAnimator? = null
 
     companion object {
         private var instance: OverlayService? = null
         private var stopCallback: (() -> Unit)? = null
         private var continueCallback: (() -> Unit)? = null
-        private var confirmCallback: ((Boolean) -> Unit)? = null  // 敏感操作确认回调
+        private var confirmCallback: ((Boolean) -> Unit)? = null  // 敏感操作Confirm回调
         private var isTakeOverMode = false
-        private var isConfirmMode = false  // 敏感操作确认模式
+        private var isConfirmMode = false  // 敏感操作ConfirmMode
 
-        // 等待 instance 回调队列
+        // Wait instance 回调队列
         private val pendingCallbacks = mutableListOf<() -> Unit>()
 
         fun show(context: Context, text: String, onStop: (() -> Unit)? = null) {
@@ -69,7 +69,7 @@ class OverlayService : Service() {
             isTakeOverMode = false
             isConfirmMode = false
             pendingCallbacks.clear()
-            // 只有当 service 已经启动完成时才停止它
+            // 只有当 service 已经StartDone时才Stop它
             // 否则会导致 ForegroundServiceDidNotStartInTimeException
             if (instance != null) {
                 context.stopService(Intent(context, OverlayService::class.java))
@@ -80,14 +80,14 @@ class OverlayService : Service() {
             instance?.updateText(text)
         }
 
-        /** 截图时临时隐藏悬浮窗 */
+        /** 截图时临时Hide悬浮窗 */
         fun setVisible(visible: Boolean) {
             instance?.overlayView?.post {
                 instance?.overlayView?.visibility = if (visible) View.VISIBLE else View.INVISIBLE
             }
         }
 
-        /** 显示人机协作模式 - 等待用户手动完成操作 */
+        /** Show人机协作Mode - Wait用户手动Done操作 */
         fun showTakeOver(message: String, onContinue: () -> Unit) {
             val action: () -> Unit = {
                 println("[OverlayService] showTakeOver: $message")
@@ -101,13 +101,13 @@ class OverlayService : Service() {
             if (instance != null) {
                 action()
             } else {
-                // 悬浮窗尚未启动，加入等待队列
+                // 悬浮窗尚未Start 加入Wait队列
                 println("[OverlayService] showTakeOver: instance is null, queuing...")
                 pendingCallbacks.add(action)
             }
         }
 
-        /** 显示敏感操作确认模式 - 用户确认或取消 */
+        /** Show敏感操作ConfirmMode - 用户Confirm或Cancel */
         fun showConfirm(message: String, onConfirm: (Boolean) -> Unit) {
             val action: () -> Unit = {
                 println("[OverlayService] showConfirm: $message")
@@ -121,13 +121,13 @@ class OverlayService : Service() {
             if (instance != null) {
                 action()
             } else {
-                // 悬浮窗尚未启动，加入等待队列
+                // 悬浮窗尚未Start 加入Wait队列
                 println("[OverlayService] showConfirm: instance is null, queuing...")
                 pendingCallbacks.add(action)
             }
         }
 
-        /** 当 instance 可用时执行等待中的回调 */
+        /** 当 instance 可用时执行Wait中的回调 */
         private fun processPendingCallbacks() {
             println("[OverlayService] processPendingCallbacks: ${pendingCallbacks.size} pending")
             pendingCallbacks.forEach { it.invoke() }
@@ -142,23 +142,23 @@ class OverlayService : Service() {
         instance = this
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
-        // 必须第一时间调用 startForeground，否则会崩溃
+        // 必须第一时间调用 startForeground 否则会崩溃
         startForegroundNotification()
 
-        // 创建悬浮窗（可能因权限问题失败）
+        // 创建悬浮窗（可能因权限问题Failed）
         try {
             createOverlayView()
         } catch (e: Exception) {
             println("[OverlayService] createOverlayView failed: ${e.message}")
         }
 
-        // 处理在 service 启动前排队的回调
+        // 处理在 service Start前排队的回调
         processPendingCallbacks()
     }
 
     private fun startForegroundNotification() {
         val channelId = "baozi_overlay"
-        val channelName = "肉包状态"
+        val channelName = "BaoziStatus"
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -167,7 +167,7 @@ class OverlayService : Service() {
                     channelName,
                     NotificationManager.IMPORTANCE_LOW
                 ).apply {
-                    description = "显示肉包执行状态"
+                    description = "ShowBaozi执行Status"
                     setShowBadge(false)
                 }
                 val notificationManager = getSystemService(NotificationManager::class.java)
@@ -182,8 +182,8 @@ class OverlayService : Service() {
             )
 
             val notification = NotificationCompat.Builder(this, channelId)
-                .setContentTitle("肉包运行中")
-                .setContentText("正在执行自动化任务...")
+                .setContentTitle("Baozi运行中")
+                .setContentText("Executing自动化任务...")
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
@@ -193,10 +193,10 @@ class OverlayService : Service() {
             startForeground(1001, notification)
         } catch (e: Exception) {
             println("[OverlayService] startForegroundNotification error: ${e.message}")
-            // 降级：使用最简单的通知确保 startForeground 被调用
+            // 降级:使用最简单的通知确保 startForeground 被调用
             try {
                 val fallbackNotification = NotificationCompat.Builder(this, channelId)
-                    .setContentTitle("肉包")
+                    .setContentTitle("Baozi")
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .build()
                 startForeground(1001, fallbackNotification)
@@ -236,9 +236,9 @@ class OverlayService : Service() {
         }
         container.background = gradientDrawable
 
-        // 状态文字
+        // Status文字
         textView = TextView(this).apply {
-            text = "肉包"
+            text = "Baozi"
             textSize = 13f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
@@ -248,7 +248,7 @@ class OverlayService : Service() {
         }
         container.addView(textView)
 
-        // 分隔线
+        // m隔线
         divider = View(this).apply {
             setBackgroundColor(Color.WHITE)
             alpha = 0.5f
@@ -258,9 +258,9 @@ class OverlayService : Service() {
         }
         container.addView(divider, dividerParams)
 
-        // 动作按钮（停止/继续/确认）
+        // 动作按钮（Stop/继续/Confirm）
         actionButton = TextView(this).apply {
-            text = "⏹ 停止"
+            text = "⏹ Stop"
             textSize = 13f
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
@@ -270,21 +270,21 @@ class OverlayService : Service() {
             setOnClickListener {
                 when {
                     isConfirmMode -> {
-                        // 确认模式：点击确认
+                        // ConfirmMode:ClickConfirm
                         confirmCallback?.invoke(true)
                         confirmCallback = null
                         isConfirmMode = false
                         setNormalMode()
                     }
                     isTakeOverMode -> {
-                        // 人机协作模式：点击继续
+                        // 人机协作Mode:Click继续
                         continueCallback?.invoke()
                         continueCallback = null
                         isTakeOverMode = false
                         setNormalMode()
                     }
                     else -> {
-                        // 正常模式：点击停止
+                        // 正常Mode:ClickStop
                         stopCallback?.invoke()
                         hide(this@OverlayService)
                     }
@@ -293,7 +293,7 @@ class OverlayService : Service() {
         }
         container.addView(actionButton)
 
-        // 第二个分隔线（确认模式用）
+        // 第二itemsm隔线（ConfirmMode用）
         divider2 = View(this).apply {
             setBackgroundColor(Color.WHITE)
             alpha = 0.5f
@@ -304,9 +304,9 @@ class OverlayService : Service() {
         }
         container.addView(divider2, divider2Params)
 
-        // 取消按钮（确认模式用）
+        // Cancel按钮（ConfirmMode用）
         cancelButton = TextView(this).apply {
-            text = "❌ 取消"
+            text = "❌ Cancel"
             textSize = 13f
             setTextColor(Color.parseColor("#FF6B6B"))  // 红色
             gravity = Gravity.CENTER
@@ -325,7 +325,7 @@ class OverlayService : Service() {
         }
         container.addView(cancelButton)
 
-        // 动画：七彩渐变流动效果
+        // 动画:七彩渐变流动效果
         startRainbowAnimation(gradientDrawable)
 
         val params = WindowManager.LayoutParams().apply {
@@ -347,15 +347,15 @@ class OverlayService : Service() {
             y = 200
         }
 
-        // 添加拖动功能（只拦截文字区域，不影响按钮点击）
+        // Add拖动功能（只拦截文字区域 不影响按钮Click）
         var initialX = 0
         var initialY = 0
         var initialTouchX = 0f
         var initialTouchY = 0f
         var isDragging = false
-        val dragThreshold = 20f  // 增大阈值，避免误触
+        val dragThreshold = 20f  // 增大阈值 避免误触
 
-        // 只在文字区域启用拖动，按钮区域不拦截
+        // 只在文字区域启用拖动 按钮区域不拦截
         textView?.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -457,43 +457,43 @@ class OverlayService : Service() {
         }
     }
 
-    /** 切换到人机协作模式 */
+    /** 切换到人机协作Mode */
     private fun setTakeOverMode(message: String) {
         println("[OverlayService] setTakeOverMode: $message")
         overlayView?.post {
             // 确保悬浮窗可见
             overlayView?.visibility = View.VISIBLE
             textView?.text = "🖐 $message"
-            actionButton?.text = "✅ 继续"
+            actionButton?.text = "✅ Continue"
             actionButton?.setTextColor(Color.parseColor("#90EE90")) // 浅绿色
-            // 隐藏取消按钮（人机协作只有继续按钮）
+            // HideCancel按钮（人机协作只有继续按钮）
             divider2?.visibility = View.GONE
             cancelButton?.visibility = View.GONE
         }
     }
 
-    /** 切换到正常模式 */
+    /** 切换到正常Mode */
     private fun setNormalMode() {
         println("[OverlayService] setNormalMode")
         overlayView?.post {
-            actionButton?.text = "⏹ 停止"
+            actionButton?.text = "⏹ Stop"
             actionButton?.setTextColor(Color.WHITE)
-            // 隐藏取消按钮和第二分隔线
+            // HideCancel按钮和第二m隔线
             divider2?.visibility = View.GONE
             cancelButton?.visibility = View.GONE
         }
     }
 
-    /** 切换到敏感操作确认模式 */
+    /** 切换到敏感操作ConfirmMode */
     private fun setConfirmMode(message: String) {
         println("[OverlayService] setConfirmMode: $message")
         overlayView?.post {
             // 确保悬浮窗可见
             overlayView?.visibility = View.VISIBLE
             textView?.text = "⚠️ $message"
-            actionButton?.text = "✅ 确认"
+            actionButton?.text = "✅ Confirm"
             actionButton?.setTextColor(Color.parseColor("#90EE90"))  // 浅绿色
-            // 显示取消按钮和第二分隔线
+            // ShowCancel按钮和第二m隔线
             divider2?.visibility = View.VISIBLE
             cancelButton?.visibility = View.VISIBLE
         }

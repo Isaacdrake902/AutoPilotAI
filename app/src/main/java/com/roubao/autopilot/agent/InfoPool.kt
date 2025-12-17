@@ -3,7 +3,7 @@ package com.roubao.autopilot.agent
 import org.json.JSONObject
 
 /**
- * Agent 状态池 - 保存所有执行过程中的信息
+ * Agent Status池 - Save所有执行过程中的信息
  */
 data class InfoPool(
     // 用户指令
@@ -18,7 +18,7 @@ data class InfoPool(
     // 动作历史
     val actionHistory: MutableList<Action> = mutableListOf(),
     val summaryHistory: MutableList<String> = mutableListOf(),
-    val actionOutcomes: MutableList<String> = mutableListOf(),  // A=成功, B=错误页面, C=无变化
+    val actionOutcomes: MutableList<String> = mutableListOf(),  // A=成功, B=Error页面, C=无变化
     val errorDescriptions: MutableList<String> = mutableListOf(),
 
     // 最近一次动作
@@ -29,7 +29,7 @@ data class InfoPool(
     // 笔记
     var importantNotes: String = "",
 
-    // 错误处理
+    // Error处理
     var errorFlagPlan: Boolean = false,
     val errToManagerThresh: Int = 2,
 
@@ -43,11 +43,11 @@ data class InfoPool(
     // Skill 上下文（从 SkillManager 获取的相关技能信息）
     var skillContext: String = "",
 
-    // 对话记忆（保存完整对话历史，用于 Executor）
+    // 对话记忆（Save完整对话历史 for Executor）
     var executorMemory: ConversationMemory? = null,
 
-    // 已安装应用列表（用于 open_app 动作）
-    var installedApps: String = ""
+    // 已安装applist（for open_app 动作）
+    var installedapp: String = ""
 )
 
 /**
@@ -60,10 +60,10 @@ data class Action(
     val x2: Int? = null,
     val y2: Int? = null,
     val text: String? = null,
-    val button: String? = null,  // Back, Home, Enter
-    val duration: Int? = null,   // wait 动作的等待时长（秒）
-    val message: String? = null, // take_over 动作的提示消息，或敏感操作确认消息
-    val needConfirm: Boolean = false  // 敏感操作需要用户确认
+    val button: String? = null,  // return to, Home, Enter
+    val duration: Int? = null,   // wait 动作的Wait时长（s）
+    val message: String? = null, // take_over 动作的提示消息 或敏感操作Confirm消息
+    val needConfirm: Boolean = false  // 敏感操作Requires用户Confirm
 ) {
     companion object {
         fun fromJson(json: String): Action? {

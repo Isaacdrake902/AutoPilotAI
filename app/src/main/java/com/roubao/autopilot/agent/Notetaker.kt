@@ -1,7 +1,7 @@
 package com.roubao.autopilot.agent
 
 /**
- * Notetaker Agent - 记录重要信息
+ * Notetaker Agent - records重要信息
  */
 class Notetaker {
 
@@ -41,7 +41,7 @@ class Notetaker {
     }
 
     /**
-     * 解析笔记响应
+     * 解析笔记Response
      */
     fun parseResponse(response: String): String {
         return response

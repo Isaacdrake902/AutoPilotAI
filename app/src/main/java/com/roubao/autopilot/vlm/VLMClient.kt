@@ -25,7 +25,7 @@ class VLMClient(
     baseUrl: String = "https://api.openai.com/v1",
     private val model: String = "gpt-4-vision-preview"
 ) {
-    // 规范化 URL：自动添加 https:// 前缀，移除末尾斜杠
+    // 规范化 URL:自动Add https:// 前缀 移除末尾斜杠
     private val baseUrl: String = normalizeUrl(baseUrl)
 
     private val client = OkHttpClient.Builder()
@@ -40,7 +40,7 @@ class VLMClient(
         private const val MAX_RETRIES = 3
         private const val RETRY_DELAY_MS = 1000L
 
-        /** 规范化 URL：自动添加 https:// 前缀，移除末尾斜杠 */
+        /** 规范化 URL:自动Add https:// 前缀 移除末尾斜杠 */
         private fun normalizeUrl(url: String): String {
             var normalized = url.trim().removeSuffix("/")
             if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
@@ -50,10 +50,10 @@ class VLMClient(
         }
 
         /**
-         * 从 API 获取可用模型列表
+         * Fetch available models from APIlist
          * @param baseUrl API 基础地址
          * @param apiKey API 密钥
-         * @return 模型 ID 列表
+         * @return Model ID list
          */
         suspend fun fetchModels(baseUrl: String, apiKey: String): Result<List<String>> = withContext(Dispatchers.IO) {
             // 验证 baseUrl 是否为空
@@ -66,7 +66,7 @@ class VLMClient(
                 .readTimeout(10, TimeUnit.SECONDS)
                 .build()
 
-            // 清理 URL，确保正确拼接
+            // 清理 URL 确保正确拼接
             val cleanBaseUrl = normalizeUrl(baseUrl.removeSuffix("/chat/completions"))
 
             val request = try {
@@ -108,7 +108,7 @@ class VLMClient(
     }
 
     /**
-     * 调用 VLM 进行多模态推理 (带重试)
+     * 调用 VLM 进行多模态推理 (带Retry)
      */
     suspend fun predict(
         prompt: String,
@@ -116,7 +116,7 @@ class VLMClient(
     ): Result<String> = withContext(Dispatchers.IO) {
         var lastException: Exception? = null
 
-        // 预先编码图片 (避免重试时重复编码)
+        // 预先编码图片 (避免Retry时重复编码)
         val encodedImages = images.map { bitmapToBase64Url(it) }
 
         for (attempt in 1..MAX_RETRIES) {
@@ -176,28 +176,28 @@ class VLMClient(
                     lastException = Exception("API error: ${response.code} - $responseBody")
                 }
             } catch (e: UnknownHostException) {
-                // DNS 解析失败，重试
-                println("[VLMClient] DNS 解析失败，重试 $attempt/$MAX_RETRIES...")
+                // DNS 解析Failed Retry
+                println("[VLMClient] DNS 解析Failed Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
                 }
             } catch (e: java.net.SocketTimeoutException) {
-                // 超时，重试
-                println("[VLMClient] 请求超时，重试 $attempt/$MAX_RETRIES...")
+                // 超时 Retry
+                println("[VLMClient] Request超时 Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
                 }
             } catch (e: java.io.IOException) {
-                // IO 错误，重试
-                println("[VLMClient] IO 错误: ${e.message}，重试 $attempt/$MAX_RETRIES...")
+                // IO Error Retry
+                println("[VLMClient] IO Error: ${e.message} Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
                 }
             } catch (e: Exception) {
-                // 其他错误，不重试
+                // 其他Error 不Retry
                 return@withContext Result.failure(e)
             }
         }
@@ -247,19 +247,19 @@ class VLMClient(
                     lastException = Exception("API error: ${response.code} - $responseBody")
                 }
             } catch (e: UnknownHostException) {
-                println("[VLMClient] DNS 解析失败，重试 $attempt/$MAX_RETRIES...")
+                println("[VLMClient] DNS 解析Failed Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
                 }
             } catch (e: java.net.SocketTimeoutException) {
-                println("[VLMClient] 请求超时，重试 $attempt/$MAX_RETRIES...")
+                println("[VLMClient] Request超时 Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
                 }
             } catch (e: java.io.IOException) {
-                println("[VLMClient] IO 错误: ${e.message}，重试 $attempt/$MAX_RETRIES...")
+                println("[VLMClient] IO Error: ${e.message} Retry $attempt/$MAX_RETRIES...")
                 lastException = e
                 if (attempt < MAX_RETRIES) {
                     delay(RETRY_DELAY_MS * attempt)
@@ -273,12 +273,12 @@ class VLMClient(
     }
 
     /**
-     * Bitmap 转 Base64 URL (只压缩质量，不压缩分辨率)
-     * 保持原始分辨率以确保坐标准确
+     * Bitmap 转 Base64 URL (只压缩质量 不压缩m辨率)
+     * 保持原始m辨率以确保坐标准确
      */
     private fun bitmapToBase64Url(bitmap: Bitmap): String {
         val outputStream = ByteArrayOutputStream()
-        // 使用 JPEG 格式，质量 70%，保持原始分辨率
+        // 使用 JPEG 格式 质量 70% 保持原始m辨率
         bitmap.compress(Bitmap.CompressFormat.JPEG, 70, outputStream)
         val bytes = outputStream.toByteArray()
         println("[VLMClient] 图片压缩: ${bitmap.width}x${bitmap.height}, ${bytes.size / 1024}KB")
@@ -330,7 +330,7 @@ object VLMConfigs {
         model = "claude-3-5-sonnet-20241022"
     )
 
-    // 自定义 (vLLM / Ollama / LocalAI)
+    // Custom (vLLM / Ollama / LocalAI)
     fun custom(apiKey: String, baseUrl: String, model: String) = VLMClient(
         apiKey = apiKey,
         baseUrl = baseUrl,

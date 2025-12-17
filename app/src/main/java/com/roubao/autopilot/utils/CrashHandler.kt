@@ -12,7 +12,7 @@ import java.util.*
 
 /**
  * 全局崩溃捕获器
- * 捕获未处理的异常并保存到本地文件
+ * 捕获未处理的异常并Save到本地文件
  */
 class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
 
@@ -21,7 +21,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
 
     companion object {
         private const val LOG_DIR = "crash_logs"
-        private const val MAX_LOG_FILES = 10 // 最多保留10个日志文件
+        private const val MAX_LOG_FILES = 10 // 最多保留10itemsLogs文件
 
         @Volatile
         private var instance: CrashHandler? = null
@@ -33,7 +33,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
         }
 
         /**
-         * 获取日志目录
+         * 获取Logs目录
          */
         fun getLogDir(context: Context): File {
             val dir = File(context.filesDir, LOG_DIR)
@@ -44,7 +44,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
         }
 
         /**
-         * 获取所有日志文件
+         * 获取所有Logs文件
          */
         fun getLogFiles(context: Context): List<File> {
             val dir = getLogDir(context)
@@ -55,7 +55,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
         }
 
         /**
-         * 导出日志（合并所有日志到一个文件）
+         * Export Logs（合并所有Logs到一items文件）
          */
         fun exportLogs(context: Context): File? {
             val logFiles = getLogFiles(context)
@@ -70,11 +70,11 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
                     writer.write("========== 设备信息 ==========\n")
                     writer.write("设备: ${Build.MANUFACTURER} ${Build.MODEL}\n")
                     writer.write("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})\n")
-                    writer.write("应用版本: ${getAppVersion(context)}\n")
+                    writer.write("appVersion: ${getAppVersion(context)}\n")
                     writer.write("导出时间: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}\n")
                     writer.write("\n")
 
-                    // 合并所有日志
+                    // 合并所有Logs
                     logFiles.forEach { file ->
                         writer.write("========== ${file.name} ==========\n")
                         writer.write(file.readText())
@@ -89,12 +89,12 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
         }
 
         /**
-         * 分享日志文件
+         * m享Logs文件
          */
         fun shareLogs(context: Context) {
             val exportFile = exportLogs(context)
             if (exportFile == null) {
-                android.widget.Toast.makeText(context, "没有日志可导出", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, "没有Logs可导出", android.widget.Toast.LENGTH_SHORT).show()
                 return
             }
 
@@ -108,20 +108,20 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
                 val intent = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_STREAM, uri)
-                    putExtra(Intent.EXTRA_SUBJECT, "肉包 App 日志")
-                    putExtra(Intent.EXTRA_TEXT, "请查看附件中的日志文件")
+                    putExtra(Intent.EXTRA_SUBJECT, "Baozi App Logs")
+                    putExtra(Intent.EXTRA_TEXT, "请查看附件中的Logs文件")
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
 
-                context.startActivity(Intent.createChooser(intent, "分享日志"))
+                context.startActivity(Intent.createChooser(intent, "m享Logs"))
             } catch (e: Exception) {
                 e.printStackTrace()
-                android.widget.Toast.makeText(context, "分享失败: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+                android.widget.Toast.makeText(context, "m享Failed: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
             }
         }
 
         /**
-         * 清除所有日志
+         * Clear所有Logs
          */
         fun clearLogs(context: Context) {
             val dir = getLogDir(context)
@@ -129,16 +129,16 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
         }
 
         /**
-         * 获取日志统计信息
+         * 获取Logs统计信息
          */
         fun getLogStats(context: Context): String {
             val files = getLogFiles(context)
             if (files.isEmpty()) {
-                return "暂无日志"
+                return "暂无Logs"
             }
             val totalSize = files.sumOf { it.length() }
             val sizeStr = if (totalSize > 1024) "${totalSize / 1024} KB" else "$totalSize B"
-            return "${files.size} 个文件, $sizeStr"
+            return "${files.size} items文件, $sizeStr"
         }
 
         private fun getAppVersion(context: Context): String {
@@ -152,27 +152,27 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
     }
 
     /**
-     * 初始化
+     * Initialize
      */
     fun init(context: Context) {
         this.context = context.applicationContext
         defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler(this)
 
-        // 清理旧日志
+        // 清理旧Logs
         cleanOldLogs()
     }
 
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
-        // 保存崩溃日志
+        // Save崩溃Logs
         saveCrashLog(throwable)
 
-        // 调用默认处理器（让系统显示崩溃对话框或直接退出）
+        // 调用默认处理器（让系统Show崩溃对话框或直接退出）
         defaultHandler?.uncaughtException(thread, throwable)
     }
 
     /**
-     * 保存崩溃日志
+     * Save崩溃Logs
      */
     private fun saveCrashLog(throwable: Throwable) {
         val ctx = context ?: return
@@ -193,7 +193,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
                 writer.println("设备: ${Build.MANUFACTURER} ${Build.MODEL}")
                 writer.println("Android: ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
                 writer.println("CPU ABI: ${Build.SUPPORTED_ABIS.joinToString()}")
-                writer.println("应用版本: ${getAppVersion(ctx)}")
+                writer.println("appVersion: ${getAppVersion(ctx)}")
                 writer.println()
 
                 // 异常信息
@@ -201,14 +201,14 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
                 throwable.printStackTrace(writer)
             }
 
-            println("[CrashHandler] 崩溃日志已保存: $fileName")
+            println("[CrashHandler] 崩溃Logs已Save: $fileName")
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     /**
-     * 记录普通日志（非崩溃）
+     * records普通Logs（非崩溃）
      */
     fun log(tag: String, message: String, throwable: Throwable? = null) {
         val ctx = context ?: return
@@ -233,7 +233,7 @@ class CrashHandler private constructor() : Thread.UncaughtExceptionHandler {
     }
 
     /**
-     * 清理旧日志，只保留最近的文件
+     * 清理旧Logs 只保留最近的文件
      */
     private fun cleanOldLogs() {
         val ctx = context ?: return

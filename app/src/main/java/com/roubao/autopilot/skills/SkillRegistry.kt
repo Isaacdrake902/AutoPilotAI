@@ -10,9 +10,9 @@ import java.io.IOException
  * Skill 注册表
  *
  * 管理所有 Skills 的注册、查找和匹配
- * 核心功能：
+ * 核心功能:
  * - 从 skills.json 加载意图定义
- * - 查询本地已安装 App，筛选可用应用
+ * - 查询本地已安装 App 筛选可用app
  * - 根据优先级选择最佳执行方案
  */
 class SkillRegistry private constructor(
@@ -23,22 +23,22 @@ class SkillRegistry private constructor(
     private val skills = mutableMapOf<String, Skill>()
     private val categoryIndex = mutableMapOf<String, MutableList<Skill>>()
 
-    // 缓存已安装 App 的包名集合（启动时刷新）
+    // Cached set of installed app package names (refreshed on start)
     private var installedPackages: Set<String> = emptySet()
 
     /**
-     * 初始化：刷新已安装应用列表
+     * Initialize: Refresh installed apps list
      */
     fun refreshInstalledApps() {
         val apps = appScanner.getApps()
         installedPackages = apps.map { it.packageName }.toSet()
-        println("[SkillRegistry] 已缓存 ${installedPackages.size} 个已安装应用")
+        println("[SkillRegistry] Cached ${installedPackages.size} installed apps")
 
-        // 调试：检查美团相关的应用
+        // Debug: Check Meituan related apps
         val meituanApps = installedPackages.filter { it.contains("meituan") || it.contains("dianping") }
-        println("[SkillRegistry] 美团相关应用: $meituanApps")
+        println("[SkillRegistry] Meituan related apps: $meituanApps")
 
-        // 检查小美的 DeepLink 是否可用（间接检测安装状态）
+        // Check if Meituan DeepLink is available (indirect installation check)
         try {
             val pm = context.packageManager
             val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
@@ -47,16 +47,16 @@ class SkillRegistry private constructor(
             val resolveInfo = pm.resolveActivity(intent, 0)
             if (resolveInfo != null) {
                 val pkgName = resolveInfo.activityInfo.packageName
-                println("[SkillRegistry] 小美 DeepLink 可用，包名: $pkgName")
+                println("[SkillRegistry] Meituan DeepLink available, package: $pkgName")
                 if (!installedPackages.contains(pkgName)) {
                     installedPackages = installedPackages + pkgName
-                    println("[SkillRegistry] 添加 $pkgName 到已安装列表")
+                    println("[SkillRegistry] Added $pkgName to installed list")
                 }
             } else {
-                println("[SkillRegistry] 小美 DeepLink 不可用")
+                println("[SkillRegistry] Meituan DeepLink unavailable")
             }
         } catch (e: Exception) {
-            println("[SkillRegistry] 检查小美失败: ${e.message}")
+            println("[SkillRegistry] Check Meituan failed: ${e.message}")
         }
     }
 
@@ -93,16 +93,16 @@ class SkillRegistry private constructor(
                 register(Skill(config))
                 loadedCount++
             }
-            println("[SkillRegistry] 已加载 $loadedCount 个 Skills")
+            println("[SkillRegistry] Loaded $loadedCount items Skills")
         } catch (e: Exception) {
-            println("[SkillRegistry] JSON 解析错误: ${e.message}")
+            println("[SkillRegistry] JSON 解析Error: ${e.message}")
             e.printStackTrace()
         }
         return loadedCount
     }
 
     /**
-     * 解析单个 Skill 配置（新结构）
+     * 解析单items Skill 配置（新结构）
      */
     private fun parseSkillConfig(obj: JSONObject): SkillConfig {
         // 解析参数
@@ -138,8 +138,8 @@ class SkillRegistry private constructor(
             }
         }
 
-        // 解析关联应用列表（新结构）
-        val relatedApps = mutableListOf<RelatedApp>()
+        // 解析关联applist（新结构）
+        val relatedapp = mutableListOf<RelatedApp>()
         val appsArray = obj.optJSONArray("related_apps")
         if (appsArray != null) {
             for (i in 0 until appsArray.length()) {
@@ -152,7 +152,7 @@ class SkillRegistry private constructor(
                     else -> ExecutionType.GUI_AUTOMATION
                 }
 
-                // 解析操作步骤
+                // 解析操作steps
                 val steps = mutableListOf<String>()
                 val stepsArray = appObj.optJSONArray("steps")
                 if (stepsArray != null) {
@@ -161,7 +161,7 @@ class SkillRegistry private constructor(
                     }
                 }
 
-                relatedApps.add(RelatedApp(
+                relatedapp.add(RelatedApp(
                     packageName = appObj.getString("package"),
                     name = appObj.getString("name"),
                     type = type,
@@ -180,7 +180,7 @@ class SkillRegistry private constructor(
             category = obj.optString("category", "通用"),
             keywords = keywords,
             params = params,
-            relatedApps = relatedApps,
+            relatedapp = relatedapp,
             promptHint = obj.optString("prompt_hint", null)?.takeIf { it.isNotEmpty() }
         )
     }
@@ -191,11 +191,11 @@ class SkillRegistry private constructor(
     fun register(skill: Skill) {
         skills[skill.config.id] = skill
 
-        // 更新分类索引
+        // 更新m类索引
         val category = skill.config.category
         categoryIndex.getOrPut(category) { mutableListOf() }.add(skill)
 
-        println("[SkillRegistry] 注册 Skill: ${skill.config.id} (${skill.config.relatedApps.size} 关联应用)")
+        println("[SkillRegistry] 注册 Skill: ${skill.config.id} (${skill.config.relatedapp.size} 关联app)")
     }
 
     /**
@@ -209,14 +209,14 @@ class SkillRegistry private constructor(
     fun getAll(): List<Skill> = skills.values.toList()
 
     /**
-     * 按分类获取 Skills
+     * 按m类获取 Skills
      */
     fun getByCategory(category: String): List<Skill> {
         return categoryIndex[category] ?: emptyList()
     }
 
     /**
-     * 获取所有分类
+     * 获取所有m类
      */
     fun getAllCategories(): List<String> = categoryIndex.keys.toList()
 
@@ -247,11 +247,11 @@ class SkillRegistry private constructor(
     }
 
     /**
-     * 匹配意图并返回可用应用（核心方法）
+     * Match intent and return available apps (Core Method)
      *
-     * 1. 匹配用户意图到 Skill
-     * 2. 筛选出已安装的关联应用
-     * 3. 按优先级排序
+     * 1. Match user intent to Skill
+     * 2. Filter installed related apps
+     * 3. Sort by priority
      */
     fun matchAvailableApps(
         query: String,
@@ -264,8 +264,8 @@ class SkillRegistry private constructor(
             val skill = skillMatch.skill
             val params = skillMatch.params
 
-            // 筛选已安装的应用，按优先级排序
-            val availableApps = skill.config.relatedApps
+            // Filter installed apps, sort by priority
+            val availableApps = skill.config.relatedapp
                 .filter { isAppInstalled(it.packageName) }
                 .sortedByDescending { it.priority }
 
@@ -279,12 +279,12 @@ class SkillRegistry private constructor(
             }
         }
 
-        // 按 (匹配分数 * 0.5 + 应用优先级 * 0.01) 综合排序
+        // Sort by (Match Score * 0.5 + App Priority * 0.01)
         return results.sortedByDescending { it.score * 0.5f + it.app.priority * 0.01f }
     }
 
     /**
-     * 获取意图的最佳可用应用
+     * Get best available app for intent
      */
     fun getBestAvailableApp(query: String, minScore: Float = 0.3f): AvailableAppMatch? {
         return matchAvailableApps(query, minScore).firstOrNull()
@@ -295,7 +295,7 @@ class SkillRegistry private constructor(
      */
     fun getSkillsDescription(): String {
         return buildString {
-            append("可用技能列表：\n\n")
+            append("可用技能list:\n\n")
             for ((category, categorySkills) in categoryIndex) {
                 append("【$category】\n")
                 for (skill in categorySkills) {
@@ -304,14 +304,14 @@ class SkillRegistry private constructor(
                     if (config.keywords.isNotEmpty()) {
                         append("  关键词: ${config.keywords.joinToString(", ")}\n")
                     }
-                    // 显示已安装的应用
-                    val installedApps = config.relatedApps.filter { isAppInstalled(it.packageName) }
-                    if (installedApps.isNotEmpty()) {
-                        val appNames = installedApps.map {
+                    // Show已安装的app
+                    val installedapp = config.relatedapp.filter { isAppInstalled(it.packageName) }
+                    if (installedapp.isNotEmpty()) {
+                        val appNames = installedapp.map {
                             val typeIcon = if (it.type == ExecutionType.DELEGATION) "🚀" else "🤖"
                             "$typeIcon${it.name}"
                         }
-                        append("  可用应用: ${appNames.joinToString(", ")}\n")
+                        append("  可用app: ${appNames.joinToString(", ")}\n")
                     }
                 }
                 append("\n")
@@ -333,7 +333,7 @@ class SkillRegistry private constructor(
         }
 
         fun getInstance(): SkillRegistry {
-            return instance ?: throw IllegalStateException("SkillRegistry 未初始化，请先调用 init()")
+            return instance ?: throw IllegalStateException("SkillRegistry 未Initialize 请先调用 init()")
         }
 
         fun isInitialized(): Boolean = instance != null

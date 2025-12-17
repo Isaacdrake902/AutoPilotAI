@@ -10,9 +10,9 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
- * HTTP 请求工具
+ * HTTP Request工具
  *
- * 用于调用外部 API，如：
+ * for调用外部 APIe.g.:
  * - 调用 AI 服务
  * - 获取天气信息
  * - 查询数据
@@ -20,14 +20,14 @@ import java.net.URL
 class HttpTool : Tool {
 
     override val name = "http_request"
-    override val displayName = "HTTP 请求"
-    override val description = "发送 HTTP 请求调用外部 API"
+    override val displayName = "HTTP Request"
+    override val description = "Send HTTP Request调用外部 API"
 
     override val params = listOf(
         ToolParam(
             name = "url",
             type = "string",
-            description = "请求 URL",
+            description = "Request URL",
             required = true
         ),
         ToolParam(
@@ -40,19 +40,19 @@ class HttpTool : Tool {
         ToolParam(
             name = "headers",
             type = "object",
-            description = "请求头（JSON 格式）",
+            description = "Request头（JSON 格式）",
             required = false
         ),
         ToolParam(
             name = "body",
             type = "string",
-            description = "请求体（POST/PUT 时使用）",
+            description = "Request体（POST/PUT 时使用）",
             required = false
         ),
         ToolParam(
             name = "timeout",
             type = "int",
-            description = "超时时间（毫秒）",
+            description = "超时时间（毫s）",
             required = false,
             defaultValue = 30000
         )
@@ -78,7 +78,7 @@ class HttpTool : Tool {
             connection.readTimeout = timeout
             connection.doInput = true
 
-            // 设置请求头
+            // SettingsRequest头
             headers.forEach { (key, value) ->
                 connection.setRequestProperty(key, value)
             }
@@ -88,7 +88,7 @@ class HttpTool : Tool {
                 connection.setRequestProperty("Content-Type", "application/json")
             }
 
-            // 发送请求体
+            // SendRequest体
             if (body != null && (method == "POST" || method == "PUT")) {
                 connection.doOutput = true
                 OutputStreamWriter(connection.outputStream).use { writer ->
@@ -97,7 +97,7 @@ class HttpTool : Tool {
                 }
             }
 
-            // 读取响应
+            // 读取Response
             val responseCode = connection.responseCode
             val inputStream = if (responseCode >= 400) {
                 connection.errorStream
@@ -123,15 +123,15 @@ class HttpTool : Tool {
                     "status_code" to responseCode,
                     "body" to response
                 ),
-                message = "请求成功 (HTTP $responseCode)"
+                message = "Request成功 (HTTP $responseCode)"
             )
         } catch (e: Exception) {
-            ToolResult.Error("请求失败: ${e.message}")
+            ToolResult.Error("RequestFailed: ${e.message}")
         }
     }
 
     /**
-     * 简化的 GET 请求
+     * 简化的 GET Request
      */
     suspend fun get(url: String, headers: Map<String, String> = emptyMap()): ToolResult {
         return execute(mapOf(
@@ -142,7 +142,7 @@ class HttpTool : Tool {
     }
 
     /**
-     * 简化的 POST 请求
+     * 简化的 POST Request
      */
     suspend fun post(url: String, body: String, headers: Map<String, String> = emptyMap()): ToolResult {
         return execute(mapOf(
@@ -154,7 +154,7 @@ class HttpTool : Tool {
     }
 
     /**
-     * POST JSON 请求
+     * POST JSON Request
      */
     suspend fun postJson(url: String, json: JSONObject, headers: Map<String, String> = emptyMap()): ToolResult {
         val allHeaders = headers.toMutableMap()

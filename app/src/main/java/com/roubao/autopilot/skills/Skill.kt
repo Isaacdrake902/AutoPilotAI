@@ -3,17 +3,17 @@ package com.roubao.autopilot.skills
 import com.roubao.autopilot.tools.ToolManager
 
 /**
- * 执行类型
+ * Execution Type
  */
 enum class ExecutionType {
-    /** 委托：通过 DeepLink 打开 App */
+    /** Delegation: Open App via DeepLink */
     DELEGATION,
-    /** GUI 自动化：通过截图-操作循环 */
+    /** GUI Automation: Screenshot-Action Loop */
     GUI_AUTOMATION
 }
 
 /**
- * 关联应用配置
+ * Related App Configuration
  */
 data class RelatedApp(
     val packageName: String,
@@ -26,7 +26,7 @@ data class RelatedApp(
 )
 
 /**
- * Skill 参数定义
+ * Skill Parameter Definition
  */
 data class SkillParam(
     val name: String,
@@ -38,7 +38,7 @@ data class SkillParam(
 )
 
 /**
- * Skill 配置（意图定义）
+ * Skill Configuration (Intent Definition)
  */
 data class SkillConfig(
     val id: String,
@@ -47,14 +47,14 @@ data class SkillConfig(
     val category: String,
     val keywords: List<String>,
     val params: List<SkillParam>,
-    val relatedApps: List<RelatedApp>,
-    val promptHint: String? = null  // 提示词约束，如"内容不超过100字"
+    val relatedapp: List<RelatedApp>,
+    val promptHint: String? = null  // Prompt constraint e.g. "Content must be under 100 words"
 )
 
 /**
- * Skill 执行计划
+ * Skill Execution Plan
  *
- * 根据用户意图和本地已安装 App 生成的执行方案
+ * Execution scheme generated based on user intent and locally installed Apps
  */
 data class ExecutionPlan(
     val skillId: String,
@@ -62,30 +62,30 @@ data class ExecutionPlan(
     val app: RelatedApp,
     val params: Map<String, Any?>,
     val isInstalled: Boolean,
-    val promptHint: String? = null  // 提示词约束
+    val promptHint: String? = null  // Prompt constraint
 ) {
     /**
-     * 生成给 Agent 的上下文信息
+     * Generate context info for Agent
      */
     fun toAgentContext(): String {
         return buildString {
-            append("【任务】${skillName}\n")
-            append("【目标应用】${app.name} (${app.packageName})\n")
-            append("【执行方式】${if (app.type == ExecutionType.DELEGATION) "快捷跳转" else "GUI 自动化"}\n")
+            append("【Task】${skillName}\n")
+            append("【Target App】${app.name} (${app.packageName})\n")
+            append("【Execution Mode】${if (app.type == ExecutionType.DELEGATION) "DeepLink Shortcut" else "GUI Automation"}\n")
 
             if (!promptHint.isNullOrBlank()) {
-                append("【重要提示】⚠️ $promptHint\n")
+                append("【Important】⚠️ $promptHint\n")
             }
 
             if (!app.steps.isNullOrEmpty()) {
-                append("【操作步骤】\n")
+                append("【Steps】\n")
                 app.steps.forEachIndexed { index, step ->
                     append("  ${index + 1}. $step\n")
                 }
             }
 
             if (params.isNotEmpty()) {
-                append("【参数】\n")
+                append("【Params】\n")
                 params.forEach { (key, value) ->
                     if (key != "_raw_query" && value != null) {
                         append("  $key: $value\n")
@@ -97,11 +97,11 @@ data class ExecutionPlan(
 }
 
 /**
- * Skill 执行结果
+ * Skill Execution Result
  */
 sealed class SkillResult {
     /**
-     * 委托成功：已通过 DeepLink 跳转
+     * Delegation Success: Opened via DeepLink
      */
     data class Delegated(
         val app: RelatedApp,
@@ -110,7 +110,7 @@ sealed class SkillResult {
     ) : SkillResult()
 
     /**
-     * GUI 自动化：返回执行计划给 Agent
+     * GUI Automation: Return execution plan to Agent
      */
     data class NeedAutomation(
         val plan: ExecutionPlan,
@@ -118,7 +118,7 @@ sealed class SkillResult {
     ) : SkillResult()
 
     /**
-     * 失败
+     * Failed
      */
     data class Failed(
         val error: String,
@@ -126,40 +126,40 @@ sealed class SkillResult {
     ) : SkillResult()
 
     /**
-     * 无可用应用
+     * No available app
      */
     data class NoAvailableApp(
         val skillName: String,
-        val requiredApps: List<String>
+        val requiredapp: List<String>
     ) : SkillResult()
 }
 
 /**
- * Skill 意图匹配器
+ * Skill Intent Matcher
  */
 class Skill(val config: SkillConfig) {
 
     /**
-     * 计算与用户查询的匹配分数
-     * @return 0-1 之间的分数
+     * Calculate match score with user query
+     * @return Score between 0-1
      */
     fun matchScore(query: String): Float {
         val lowerQuery = query.lowercase()
 
-        // 精确匹配关键词（最高分）
+        // Exact keyword match (Highest score)
         for (keyword in config.keywords) {
             if (lowerQuery.contains(keyword.lowercase())) {
                 return 0.9f
             }
         }
 
-        // 匹配 Skill 名称
+        // Match Skill Name
         if (lowerQuery.contains(config.name.lowercase())) {
             return 0.8f
         }
 
-        // 模糊匹配描述
-        val descWords = config.description.split(" ", "，", "、", "/")
+        // Fuzzy match description
+        val descWords = config.description.split(" ", " ", "、", "/")
         val matchedWords = descWords.count { lowerQuery.contains(it.lowercase()) }
         if (matchedWords > 0) {
             return (0.3f + 0.3f * matchedWords / descWords.size).coerceAtMost(0.7f)
@@ -169,7 +169,7 @@ class Skill(val config: SkillConfig) {
     }
 
     /**
-     * 从查询中提取参数
+     * Extract parameters from query
      */
     fun extractParams(query: String): Map<String, Any?> {
         val params = mutableMapOf<String, Any?>()
@@ -177,7 +177,7 @@ class Skill(val config: SkillConfig) {
         for (param in config.params) {
             when (param.name) {
                 "food", "item", "song", "book", "keyword" -> {
-                    // 提取关键内容（去掉意图关键词后的部分）
+                    // Extract key content (remove intent keywords)
                     var content = query
                     for (kw in config.keywords) {
                         content = content.replace(kw, "", ignoreCase = true)
@@ -188,46 +188,49 @@ class Skill(val config: SkillConfig) {
                     }
                 }
                 "destination", "address", "location" -> {
-                    // 提取目的地
+                    // Extract destination
                     val patterns = listOf(
-                        "去(.+?)$",
-                        "到(.+?)$",
-                        "导航(.+?)$",
-                        "(.+?)怎么走"
+                        "to (.+?)$",
+                        "go to (.+?)$",
+                        "navigate to (.+?)$",
+                        "how to get to (.+?)"
                     )
                     for (pattern in patterns) {
-                        val match = Regex(pattern).find(query)
-                        if (match != null) {
-                            params[param.name] = match.groupValues[1].trim()
-                            break
-                        }
+                        try {
+                            val match = Regex(pattern).find(query)
+                            if (match != null) {
+                                params[param.name] = match.groupValues[1].trim()
+                                break
+                            }
+                        } catch (e: Exception) {}
                     }
+                    // If English patterns fail, try fallback/Chinese patterns if needed, but for now stick to simple extraction or keep original
                 }
                 "contact" -> {
-                    // 提取联系人
+                    // Extract contact
                     val patterns = listOf(
-                        "给(.+?)发",
-                        "跟(.+?)说",
-                        "告诉(.+?)"
+                        "send to (.+?)$",
+                        "tell (.+?)$"
                     )
                     for (pattern in patterns) {
-                        val match = Regex(pattern).find(query)
-                        if (match != null) {
-                            params[param.name] = match.groupValues[1].trim()
-                            break
-                        }
+                        try {
+                            val match = Regex(pattern).find(query)
+                            if (match != null) {
+                                params[param.name] = match.groupValues[1].trim()
+                                break
+                            }
+                        } catch (e: Exception) {}
                     }
                 }
                 "message", "content", "prompt" -> {
-                    // 保存原始查询作为内容
+                    // Save original query as content
                     params[param.name] = query
                 }
                 "time" -> {
-                    // 提取时间
+                    // Extract time (Simple regex for now)
                     val patterns = listOf(
-                        "(\\d{1,2}[点:：]\\d{0,2})",
-                        "(\\d{1,2}点)",
-                        "(早上|上午|中午|下午|晚上|明天).{0,5}(\\d{1,2}[点:：]?\\d{0,2}?)"
+                        "(\\d{1,2}:\\d{2})",
+                        "(\\d{1,2} [ap]m)"
                     )
                     for (pattern in patterns) {
                         val match = Regex(pattern).find(query)
@@ -239,20 +242,20 @@ class Skill(val config: SkillConfig) {
                 }
             }
 
-            // 设置默认值
+            // Set default value
             if (!params.containsKey(param.name) && param.defaultValue != null) {
                 params[param.name] = param.defaultValue
             }
         }
 
-        // 保存原始查询
+        // Save raw query
         params["_raw_query"] = query
 
         return params
     }
 
     /**
-     * 生成 DeepLink（替换参数）
+     * Generate DeepLink (Param substitution)
      */
     fun generateDeepLink(app: RelatedApp, params: Map<String, Any?>): String {
         var deepLink = app.deepLink ?: return ""
@@ -263,7 +266,7 @@ class Skill(val config: SkillConfig) {
             }
         }
 
-        // 清理未替换的占位符
+        // Clean up unreplaced placeholders
         deepLink = deepLink.replace(Regex("\\{[^}]+\\}"), "")
 
         return deepLink
@@ -271,7 +274,7 @@ class Skill(val config: SkillConfig) {
 }
 
 /**
- * Skill 匹配结果
+ * Skill Match Result
  */
 data class SkillMatch(
     val skill: Skill,
@@ -280,7 +283,7 @@ data class SkillMatch(
 )
 
 /**
- * 可用应用匹配结果
+ * Available App Match Result
  */
 data class AvailableAppMatch(
     val skill: Skill,
@@ -290,7 +293,7 @@ data class AvailableAppMatch(
 )
 
 /**
- * LLM 意图匹配结果
+ * LLM Intent Match Result
  */
 data class LLMIntentMatch(
     val skillId: String,

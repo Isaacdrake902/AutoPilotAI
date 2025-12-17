@@ -2,55 +2,55 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- 网络权限 -->
+    <!-- Network Permission -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- 存储权限 (截图保存) -->
+    <!-- Storage Permission (Screenshot Save) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
 
-    <!-- Shizuku 权限 -->
+    <!-- Shizuku Permission -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
-    <!-- 悬浮窗权限 -->
+    <!-- Overlay Window Permission -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- 屏幕常亮 -->
+    <!-- Keep Screen On -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!-- 查询所有已安装应用 (Android 11+) -->
+    <!-- Query All Installed Apps (Android 11+) -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
-    <!-- 声明需要查询的应用和 Intent -->
+    <!-- Declare Queries -->
     <queries>
-        <!-- 查询所有可启动的应用 -->
+        <!-- Query Launcher Apps -->
         <intent>
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent>
-        <!-- 查询 VIEW intent (DeepLink) -->
+        <!-- Query VIEW intent (DeepLink) -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="*" />
         </intent>
-        <!-- 小美 DeepLink -->
+        <!-- Beam DeepLink -->
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="beam" />
         </intent>
-        <!-- 美团 -->
+        <!-- Meituan -->
         <package android:name="com.sankuai.meituan" />
         <package android:name="com.meituan.android.beam" />
-        <!-- 饿了么 -->
+        <!-- Eleme -->
         <package android:name="me.ele" />
-        <!-- 大众点评 -->
+        <!-- Dianping -->
         <package android:name="com.dianping.v1" />
     </queries>
 
@@ -74,7 +74,7 @@
             android:multiprocess="false"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
-        <!-- FileProvider 用于分享日志文件 -->
+        <!-- FileProvider for Log Sharing -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -97,7 +97,7 @@
             </intent-filter>
         </activity>
 
-        <!-- 悬浮窗服务 -->
+        <!-- Overlay Service -->
         <service
             android:name=".ui.OverlayService"
             android:exported="false"

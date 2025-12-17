@@ -38,7 +38,7 @@ class Manager {
         }
 
         append("### Guidelines ###\n")
-        append("1. IMPORTANT: If you see the \"肉包\" or \"Baozi\" app interface (this automation tool), press Home button first to go back to the home screen, then proceed with the task.\n")
+        append("1. IMPORTANT: If you see the \"Baozi\" or \"Baozi\" app interface (this automation tool), press Home button first to go back to the home screen, then proceed with the task.\n")
         append("2. ALWAYS use `open_app` action to open apps - NEVER go to home screen to look for app icons! The open_app action can launch any installed app directly.\n")
         append("3. Use search to quickly find a file or entry with a specific name.\n")
         append("4. If there are relevant skills listed above, follow their suggested steps for better efficiency.\n")
@@ -94,7 +94,7 @@ class Manager {
             append("${infoPool.importantNotes}\n\n")
         }
 
-        // 错误升级
+        // Error升级
         if (infoPool.errorFlagPlan) {
             append("### ⚠️ STUCK - Multiple Failed Attempts! ###\n")
             append("You have encountered several consecutive failed attempts:\n")
@@ -111,7 +111,7 @@ class Manager {
             append("- Wait for page to load (the UI might be loading)\n")
             append("- Try clicking at different coordinates\n")
             append("- Scroll to find the correct button\n")
-            append("- Press Back and try again\n\n")
+            append("- Press return to and try again\n\n")
         }
 
         append("---\n")
@@ -119,7 +119,7 @@ class Manager {
 
         append("### ⛔ SECURITY: Sensitive Pages - MUST STOP ###\n")
         append("ONLY output \"STOP_SENSITIVE\" when the screen is ACTIVELY REQUESTING one of these:\n")
-        append("- A payment confirmation button that will charge money (确认支付, 立即付款, 确认付款)\n")
+        append("- A payment confirmation button that will charge money (Confirmpayment, 立即付款, Confirm付款)\n")
         append("- A password input field that is focused and waiting for input\n")
         append("- Face ID or fingerprint verification dialog\n")
         append("DO NOT stop for: price displays, payment method selection, cart pages, or general app navigation.\n\n")
@@ -142,7 +142,7 @@ class Manager {
     }
 
     /**
-     * 解析规划响应
+     * 解析规划Response
      */
     fun parseResponse(response: String): PlanResult {
         val thought = response

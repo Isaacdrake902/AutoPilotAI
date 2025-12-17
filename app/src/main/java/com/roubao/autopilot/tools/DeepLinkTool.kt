@@ -5,20 +5,20 @@ import com.roubao.autopilot.controller.DeviceController
 /**
  * DeepLink 工具
  *
- * 通过 Intent 打开应用的特定页面或功能
+ * 通过 Intent Openapp的特定页面或功能
  * 这是实现 delegation 类型 Skill 的核心工具
  */
 class DeepLinkTool(private val deviceController: DeviceController) : Tool {
 
     override val name = "deep_link"
-    override val displayName = "深度链接"
-    override val description = "通过 DeepLink/Intent 打开应用的特定页面或功能"
+    override val displayName = "Deep link"
+    override val description = "通过 DeepLink/Intent Openapp的特定页面或功能"
 
     override val params = listOf(
         ToolParam(
             name = "uri",
             type = "string",
-            description = "DeepLink URI（如：weixin://、alipays://、amap://）",
+            description = "DeepLink URI（e.g.:weixin://、alipays://、amap://）",
             required = true
         ),
         ToolParam(
@@ -38,10 +38,10 @@ class DeepLinkTool(private val deviceController: DeviceController) : Tool {
             deviceController.openDeepLink(uri)
             ToolResult.Success(
                 data = mapOf("uri" to uri),
-                message = "已打开: $uri"
+                message = "已Open: $uri"
             )
         } catch (e: Exception) {
-            ToolResult.Error("打开 DeepLink 失败: ${e.message}")
+            ToolResult.Error("Open DeepLink Failed: ${e.message}")
         }
     }
 
@@ -69,7 +69,7 @@ class DeepLinkTool(private val deviceController: DeviceController) : Tool {
             "alipay_scan" to "alipays://platformapi/startapp?appId=10000007",
             "alipay_pay" to "alipays://platformapi/startapp?appId=20000056",
 
-            // ========== 支付类 ==========
+            // ========== payment类 ==========
             "alipay_transfer" to "alipays://platformapi/startapp?appId=20000200&actionType=toAccount&account={account}",
 
             // ========== 音乐类 ==========

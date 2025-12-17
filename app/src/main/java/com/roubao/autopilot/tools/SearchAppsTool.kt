@@ -3,38 +3,38 @@ package com.roubao.autopilot.tools
 import com.roubao.autopilot.controller.AppScanner
 
 /**
- * 搜索应用工具
+ * Search Apps Tool
  *
- * 支持：
- * - 应用名搜索
- * - 拼音搜索
- * - 语义搜索（如"点外卖"会匹配外卖类应用）
- * - 分类搜索
+ * Supports:
+ * - App name search
+ * - Pinyin search
+ * - Semantic search (e.g. "Order Takeout" matches food delivery apps)
+ * - Category search
  */
 class SearchAppsTool(private val appScanner: AppScanner) : Tool {
 
     override val name = "search_apps"
-    override val displayName = "搜索应用"
-    override val description = "在已安装应用中搜索，支持应用名、拼音、语义描述等多种方式"
+    override val displayName = "Search Apps"
+    override val description = "Search in installed apps. Supports app name, Pinyin, semantic description, etc."
 
     override val params = listOf(
         ToolParam(
             name = "query",
             type = "string",
-            description = "搜索词（应用名/拼音/描述，如：微信、weixin、聊天）",
+            description = "Search query (App name/Pinyin/Description e.g.: WeChat, weixin, Chat)",
             required = true
         ),
         ToolParam(
             name = "top_k",
             type = "int",
-            description = "返回结果数量",
+            description = "Number of results to return",
             required = false,
             defaultValue = 5
         ),
         ToolParam(
             name = "include_system",
             type = "boolean",
-            description = "是否包含系统应用",
+            description = "Whether to include system apps",
             required = false,
             defaultValue = true
         )
@@ -42,7 +42,7 @@ class SearchAppsTool(private val appScanner: AppScanner) : Tool {
 
     override suspend fun execute(params: Map<String, Any?>): ToolResult {
         val query = params["query"] as? String
-            ?: return ToolResult.Error("缺少 query 参数")
+            ?: return ToolResult.Error("Missing query parameter")
 
         val topK = (params["top_k"] as? Number)?.toInt() ?: 5
         val includeSystem = params["include_system"] as? Boolean ?: true
@@ -52,7 +52,7 @@ class SearchAppsTool(private val appScanner: AppScanner) : Tool {
         if (results.isEmpty()) {
             return ToolResult.Success(
                 data = emptyList<Map<String, Any>>(),
-                message = "未找到匹配\"$query\"的应用"
+                message = "No matching apps found for \"$query\""
             )
         }
 
@@ -69,12 +69,12 @@ class SearchAppsTool(private val appScanner: AppScanner) : Tool {
 
         return ToolResult.Success(
             data = data,
-            message = "找到 ${results.size} 个匹配的应用"
+            message = "Found ${results.size} matching apps"
         )
     }
 
     /**
-     * 快捷方法：直接获取最佳匹配的包名
+     * Shortcut: Get best match package name
      */
     fun findBestMatch(query: String): String? {
         val results = appScanner.searchApps(query, topK = 1)
