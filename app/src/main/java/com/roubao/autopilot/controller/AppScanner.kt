@@ -20,6 +20,9 @@ class AppScanner(private val context: Context) {
         @Volatile
         private var cachedApps: List<AppInfo>? = null
 
+        // 预编译的正则表达式（避免重复创建）
+        private val PINYIN_CLEAN_REGEX = Regex("[^a-z0-9\\u4e00-\\u9fa5]")
+
         // 应用分类关键词映射
         private val CATEGORY_KEYWORDS = mapOf(
             "社交" to listOf("微信", "QQ", "钉钉", "飞书", "Telegram", "WhatsApp", "Line", "微博", "陌陌", "探探"),
@@ -336,7 +339,7 @@ class AppScanner(private val context: Context) {
         // 简单实现：保留英文数字，中文用首字母拼音
         // 完整拼音需要引入 pinyin4j 库，这里用简化版本
         return text.lowercase()
-            .replace(Regex("[^a-z0-9\\u4e00-\\u9fa5]"), "")
+            .replace(PINYIN_CLEAN_REGEX, "")
     }
 
     /**

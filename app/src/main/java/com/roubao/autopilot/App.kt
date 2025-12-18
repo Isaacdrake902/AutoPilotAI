@@ -56,10 +56,12 @@ class App : Application() {
         // 初始化 Tools 层
         val toolManager = ToolManager.init(this, deviceController, appScanner)
 
-        // 预扫描应用列表（同步执行，确保 SkillManager 能检测到已安装应用）
-        println("[App] 开始扫描已安装应用...")
-        appScanner.refreshApps()
-        println("[App] 已扫描 ${appScanner.getApps().size} 个应用")
+        // 异步预扫描应用列表（避免 ANR）
+        println("[App] 开始异步扫描已安装应用...")
+        Thread {
+            appScanner.refreshApps()
+            println("[App] 已扫描 ${appScanner.getApps().size} 个应用")
+        }.start()
 
         // 初始化 Skills 层（传入 appScanner 用于检测已安装应用）
         val skillManager = SkillManager.init(this, toolManager, appScanner)
