@@ -1,66 +1,71 @@
-# 🤖 roubao - Automate Your Android Experience Effortlessly
+# AutoPilotAI
 
-## 📥 Download Now
-[![Download roubao](https://img.shields.io/badge/Download-roubao-brightgreen.svg)](https://github.com/Mohsinmjr/roubao/releases)
+**AutoPilotAI** is an advanced Android automation agent powered by Vision Language Models. It allows users to control their device using natural language commands, bridging the gap between human intent and mobile interface execution.
 
-## 🚀 Getting Started
-Welcome to roubao, your go-to Android automation tool designed using advanced vision-language models. This tool helps you automate tasks on your Android device easily and efficiently. Whether you want to automate routine actions or enhance your mobile experience, roubao is here to assist.
+By leveraging privileged system access and **Jetpack Compose** for a modern UI, AutoPilotAI can perceive screen content, plan actions, and execute complex workflows without requiring root access.
 
-## 🛠️ System Requirements
-Before you start, make sure your device meets the following requirements:
-- **Android version:** 8.0 (Oreo) or higher
-- **Available storage:** At least 100 MB free
-- **Memory (RAM):** Minimum 2 GB recommended
-- **Permissions:** You need to allow access to your device's features for automation.
+##  Features
 
-## ❓ Features
-- **Visual Automation:** Automate tasks by recognizing UI elements on your screen.
-- **Script Customization:** Create custom scripts to perform repetitive actions.
-- **Easy Setup:** Simple steps to get started without requiring programming knowledge.
-- **Multiple Automation Options:** From sending messages to controlling apps, automate a variety of tasks.
+-   **Natural Language Control**: Describe tasks in plain English (e.g., "Order a burger", "Send a message to Mom").
+-   **Visual Screen Understanding**: Uses VLM (Vision Language Model) to analyze UI elements, text, and layout on the screen.
+-   **Intelligent Planning**: Decomposes complex goals into executables steps (Click, Type, Scroll, Home, Back).
+-   **Non-Root Automation**: Utilizes **Shizuku** to execute ADB commands directly on the device, ensuring high compatibility and security.
+-   **App Management**: Smart scanning and categorization of installed applications.
+-   **Privacy-Focused**: Sensitive screen detection (e.g., password fields) automatically pauses execution.
 
-## 📅 Schedule and Manage Tasks
-Roubao allows you to schedule tasks at your convenience. Use the built-in scheduling feature to automate actions daily, weekly, or monthly. This way, you save time and enhance your productivity.
+##  Technical Stack
 
-## 📜 Usage Instructions
-Follow these simple steps to get started with roubao:
+### Core Technologies
+-   **Language**: Kotlin
+-   **UI Framework**: Jetpack Compose (Material3)
+-   **Networking**: OkHttp (VLM API communication)
+-   **Concurrency**: Kotlin Coroutines & Flow
 
-1. **Visit the Download Page:** Go to the [Releases page](https://github.com/Mohsinmjr/roubao/releases).
-   
-2. **Download the Latest Version:** Look for the latest release and click on it to download.
+### Key Components
+-   **MobileAgent**: The central brain that manages state, memory, and VLM interactions. It maintains the `AgentState` and coordinates the execution loop.
+-   **DeviceController**: A simplified abstraction layer for device interactions. It handles:
+    -   Screen attributes retrieval (`wm size`)
+    -   Input simulation (`input tap`, `input text`)
+    -   Screenshot capture (via `screencap`)
+    -   App launching protocols
+-   **OverlayService**: A foreground service that draws a floating status window over other apps, providing visual feedback and an immediate "Stop" mechanism.
+-   **AppScanner**: Scans installed packages, categorizes them (Social, Shopping, etc.), and builds a semantic index for smart searching.
 
-3. **Install the Application:** 
-   - If you downloaded an APK file, locate it in your downloads folder. 
-   - Tap on the file to start the installation. You may need to allow installations from unknown sources in your settings.
+##  Architecture
 
-4. **Grant Permissions:** Open the app and grant the necessary permissions for the features you wish to use.
+The application follows a reactive **MVI (Model-View-Intent)** architecture pattern:
 
-5. **Start Automating:** Follow the in-app instructions to begin creating your automation scripts.
+1.  **UI Layer (Compose)**: Observes `AgentState` and renders the current status (Idle, Planning, Executing). User inputs are dispatched as events.
+2.  **Logic Layer (Agent)**:
+    -   **Planner**: detailed step-by-step breakdown of user instructions.
+    -   **Executor**: interfacing with `ToolManager` to perform specific actions.
+    -   **Memory**: Maintains conversation context and history.
+3.  **Data Layer**:
+    -   `SettingsManager` (DataStore) for configuration.
+    -   `SkillRegistry` for predefined capabilities.
+    -   `VLMClient` for AI model communication.
 
-6. **Explore Documentation:** For more help, explore the in-app guide or check the community forums for tips and tricks.
+##  Setup & Prerequisites
 
-## 🔧 Frequently Asked Questions
-### How safe is roubao to use?
-Roubao is designed with user privacy and security in mind. Ensure you download it from the official GitHub page and follow the installation instructions carefully.
+### Requirements
+-   **Android Device**: Android 8.0 (Oreo) or higher (API Level 26+).
+-   **Shizuku**: Must be installed and running.
 
-### What kind of tasks can I automate?
-You can automate messaging, app navigation, and interactions within the device, like opening apps, sending texts, and more. The possibilities are vast.
+### Installation
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/soumithganji/AutoPilotAI.git
+    ```
+2.  **Open in Android Studio**: Sync Gradle project.
+3.  **Build & Run**:
+    ```bash
+    ./gradlew installDebug
+    ```
 
-### How do I update the app?
-Visit the [Releases page](https://github.com/Mohsinmjr/roubao/releases) periodically to check for new updates. Follow the same steps as the initial installation to update to the latest version.
-
-## 🎯 Troubleshooting
-If you experience issues while using roubao, consider the following troubleshooting steps:
-- **Check Permissions:** Ensure all permissions are granted in your device settings.
-- **Restart the App:** Closing and reopening the app may resolve minor glitches.
-- **Reinstall the App:** If problems persist, uninstall and then reinstall the app using the latest version from the Releases page.
-
-## 🔗 Additional Resources
-- [Official Documentation](https://github.com/Mohsinmjr/roubao)
-- [User Community Forum](https://github.com/Mohsinmjr/roubao/issues)
-
-## 🌟 Feedback
-Your feedback is valuable to us. If you have suggestions or experience any issues, please submit an issue on our GitHub page. We strive to improve roubao based on user experiences.
-
-## 📥 Download Again
-In case you missed it, you can always visit the [Releases page](https://github.com/Mohsinmjr/roubao/releases) to download the latest version of roubao. Enjoy automating your Android experience!
+### Configuration
+1.  **Install Shizuku**: Download from Google Play or GitHub.
+2.  **Start Shizuku**:
+    -   **Rooted Devices**: Direct start.
+    -   **Non-Rooted**: Use Wireless Debugging key pairing (Android 11+) or connect to PC via USB and run the start script.
+3.  **Authorize AutoPilotAI**: Open Shizuku -> Manage Apps -> Grant access to AutoPilotAI.
+4.  **Grant Permissions**: Accept Overlay and Storage permissions when prompted.
