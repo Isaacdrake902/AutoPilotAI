@@ -4,7 +4,7 @@
 
 Unlike traditional accessibility tools that rely on hardcoded selectors, AutoPilotAI uses AI to "see" and "understand" the screen, making it resilient to UI changes and capable of handling complex, multi-step workflows.
 
-## 🌟 Key Features
+##  Key Features
 
 -   **Natural Language Control**: Simply say "Order me a coffee" or "Send a message to Mom," and the agent handles the rest.
 -   **Visual Intelligence**: Powered by state-of-the-art VLMs (GPT-4V, Qwen-VL, Claude 3), the agent analyzes screenshots to identify UI elements, verify states, and validate actions.
@@ -17,7 +17,7 @@ Unlike traditional accessibility tools that rely on hardcoded selectors, AutoPil
     -   **Sensitive Content Detection**: Automatically pauses execution and blanks screens when password fields or payment information are detected.
     -   **Local Processing**: App searching and basic logic run locally where possible.
 
-## 🏗️ Architecture
+##  Architecture
 
 AutoPilotAI follows a modern, reactive architecture comprising three main layers:
 
@@ -38,23 +38,16 @@ A hybrid approach combining general intelligence with specialized capabilities:
 -   **OverlayService**: A floating system overlay that provides real-time feedback (Thought/Action logs) and an immediate "Stop" control.
 -   **Jetpack Compose**: Modern, reactive UI monitoring the `AgentState` (Idle, Planning, Executing).
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 -   **Language**: Kotlin
 -   **UI**: Jetpack Compose (Material3)
 -   **Concurrency**: Kotlin Coroutines & Flows
 -   **AI/VLM**: OpenAI API-compatible client (supports GPT-4o, Qwen-VL, etc.)
--   **Device Control**: Shizuku (ADB Wrapper)
 -   **Networking**: OkHttp
 
-## 🚀 Getting Started
+##  Getting Started
 
-### Prerequisites
--   **Android Device**: Android 8.0 (Oreo) or higher (Android 11+ recommended).
--   **Shizuku**: Must be installed and running on your device.
-    -   [Download Shizuku](https://play.google.com/store/apps/details?id=moe.shizuku.privileged.api)
-    -   **Non-Rooted**: Start via Wireless Debugging (Android 11+) or PC USB script.
-    -   **Rooted**: Direct start.
 
 ### Installation
 
@@ -74,10 +67,7 @@ A hybrid approach combining general intelligence with specialized capabilities:
 3.  Grant **Overlay** and **Accessibility** permissions to allow the agent to see and interact with the screen.
 4.  Configure your **VLM API Key** (OpenAI/DashScope/Anthropic) in the settings menu.
 
-## 🛡️ Privacy & Safety
+##  Privacy & Safety
 AutoPilotAI is designed with safety guardrails:
 -   **Human-in-the-Loop**: Critical actions (like payments) trigger a confirmation dialog.
 -   **Emergency Stop**: The floating overlay always remains visible, allowing you to terminate execution instantly.
-
-## 📄 License
-[MIT License](LICENSE)
